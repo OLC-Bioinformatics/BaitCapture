@@ -11,11 +11,11 @@ nextflow.enable.dsl = 2
 // Define parameters
 params.reads = ""
 params.outdir = "${launchDir}/results"
-params.ref = "${launchDir}/targets.fa"
+params.targets = "${launchDir}/targets.fa"
 
 // Create channels
 reads_ch = Channel.fromFilePairs("${params.reads}", checkIfExists: true)
-ref_ch = Channel.fromPath("${params.ref}", checkIfExists: true)
+targets_ch = Channel.fromPath("${params.targets}", checkIfExists: true)
 
 /*
 -------------------------------------------------------------------------------
@@ -26,9 +26,7 @@ ref_ch = Channel.fromPath("${params.ref}", checkIfExists: true)
 process FASTQC {
 
     cpus = 4
-
-    tag "FASTQC ${reads}"
-
+    tag "FASTQC ${sample_id}"
     publishDir "${params.outdir}/fastqc/", mode: 'copy'
 
     input:
@@ -48,8 +46,7 @@ process FASTQC {
 process TRIMMOMATIC {
 
     cpus = 4
-
-    tag "TRIMMOMATIC ${reads}"
+    tag "TRIMMOMATIC ${sample_id}"
 
     input:
     tuple val(sample_id), path(reads)
@@ -81,6 +78,7 @@ process TRIMMOMATIC {
 
 process MULTIQC {
 
+    tag "MULTIQC ${multiqc_files}"
     publishDir "${params.outdir}/multiqc/", mode: 'copy'
 
     input:
@@ -88,8 +86,8 @@ process MULTIQC {
 
     output:
     path "*multiqc_report.html", emit: report
-    path "*_data"              , emit: data
-    path "*_plots"             , optional:true, emit: plots
+    path "*_data", emit: data
+    path "*_plots", optional:true, emit: plots
 
     script:
     """
@@ -98,7 +96,44 @@ process MULTIQC {
 
 }
 
+process BWA_INDEX {
 
+    tag "BWA_INDEX ${targets}"
+
+    input:
+    path targets
+
+    output:
+    tuple path(targets), path("*"), emit: indexed_targets
+
+    script:
+    """
+    bwa index ${targets}
+    """
+
+}
+
+process BWA_ALIGN {
+
+    cpus = 8
+    tag "BWA_ALIGN ${sample_id}"
+    publishDir "${params.outdir}/bwa-alignments/", pattern: "${sample_id}.aligned.sorted.bam", mode: 'copy'
+
+    input:
+    tuple path(targets), path("*"), val(sample_id), path(reads)
+
+    output:
+    tuple val(sample_id), path("${sample_id}.aligned.sorted.bam"), emit: aligned_targets
+
+    script:
+    """
+    INDEX=`find -L ./ -name "*.amb" | sed 's/.amb//'`
+    bwa mem -t ${task.cpus} \$INDEX ${reads} > ${sample_id}.aligned.sam
+    samtools view -S -b ${sample_id}.aligned.sam > ${sample_id}.aligned.bam
+    samtools sort --threads ${task.cpus} ${sample_id}.aligned.bam > ${sample_id}.aligned.sorted.bam
+    """
+
+}
 
 /*
 -------------------------------------------------------------------------------
@@ -108,7 +143,7 @@ process MULTIQC {
 
 workflow {
 
-    // ref_ch.view()
+    // targets_ch.view()
     // reads_ch.view()
 
     FASTQC(reads_ch)
@@ -119,11 +154,23 @@ workflow {
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
     // ch_multiqc_files.collect().view()
-    
+
     MULTIQC(ch_multiqc_files.collect())
    
+    BWA_INDEX(targets_ch)
+
+    // BWA_INDEX.out.indexed_targets.view()
+    // TRIMMOMATIC.out.trimmed_reads.view()
+
+    BWA_ALIGN(BWA_INDEX.out.indexed_targets.combine(TRIMMOMATIC.out.trimmed_reads))
 
 }
+
+/*
+-------------------------------------------------------------------------------
+    EXECUTION SUMMARY
+-------------------------------------------------------------------------------
+*/
 
 // Print execution summary
 workflow.onComplete {
