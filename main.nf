@@ -129,8 +129,45 @@ process BWA_ALIGN {
     """
     INDEX=`find -L ./ -name "*.amb" | sed 's/.amb//'`
     bwa mem -t ${task.cpus} \$INDEX ${reads} > ${sample_id}.aligned.sam
-    samtools view -S -b ${sample_id}.aligned.sam > ${sample_id}.aligned.bam
+    samtools view --threads ${task.cpus} -S -b ${sample_id}.aligned.sam > ${sample_id}.aligned.bam
     samtools sort --threads ${task.cpus} ${sample_id}.aligned.bam > ${sample_id}.aligned.sorted.bam
+    """
+
+}
+
+// process ALIGNMENT_STATS {
+
+//     tag "ALIGNMENT_STATS ${sample_id}"
+//     publishDir "${params.outdir}/alignment-stats/", pattern: "${sample_id}.sorted.bam.stats.tsv", mode: 'copy'
+
+//     input:
+//     tuple val(sample_id), path(sorted_bam)
+
+//     output:
+//     tuple val(sample_id), path("${sample_id}.sorted.bam.stats.tsv"), emit: alignment_stats
+
+//     script:
+//     """
+//     samtools index ${sorted_bam}
+//     samtools stats ${sorted_bam} | grep ^SN | cut -f 2- > ${sample_id}.sorted.bam.stats.tsv    
+//     """
+
+// }
+
+process ALIGNMENT_COVERAGES {
+
+    tag "ALIGNMENT_COVERAGES ${sample_id}"
+    publishDir "${params.outdir}/alignment-coverages/", pattern: "${sample_id}*.tsv", mode: 'copy'
+
+    input:
+    tuple val(sample_id), path(sorted_bam)
+
+    output:
+    tuple val(sample_id), path("*.tsv"), emit: alignment_coverages
+
+    script:
+    """
+    sorted-bam-to-fold-coverage.py -i ${sorted_bam} -o ${sample_id}
     """
 
 }
@@ -153,16 +190,15 @@ workflow {
     ch_multiqc_files = Channel.empty()
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
-    // ch_multiqc_files.collect().view()
-
     MULTIQC(ch_multiqc_files.collect())
    
     BWA_INDEX(targets_ch)
 
-    // BWA_INDEX.out.indexed_targets.view()
-    // TRIMMOMATIC.out.trimmed_reads.view()
-
     BWA_ALIGN(BWA_INDEX.out.indexed_targets.combine(TRIMMOMATIC.out.trimmed_reads))
+
+    // ALIGNMENT_STATS(BWA_ALIGN.out.aligned_targets)
+
+    ALIGNMENT_COVERAGES(BWA_ALIGN.out.aligned_targets)
 
 }
 
