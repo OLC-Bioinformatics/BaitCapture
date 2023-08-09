@@ -8,10 +8,24 @@
 
 nextflow.enable.dsl = 2
 
+include {validateParameters; paramsHelp; paramsSummaryLog} from 'plugin/nf-validation'
+
 // Define parameters
 params.reads = ""
 params.outdir = "${launchDir}/results"
 params.targets = "${launchDir}/targets.fa"
+params.trimmomatic = "ILLUMINACLIP:${projectDir}/assets/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
+// Print help message, supply typical command line usage for the pipeline
+if (params.help) {
+   log.info paramsHelp("nextflow run main.nf --reads sampleid_R{1,2}_001.fastq.gz --targets targets.fa")
+   exit 0
+}
+
+// Validate input parameters
+validateParameters()
+
+// Print summary of supplied parameters
+log.info paramsSummaryLog(workflow)
 
 // Create channels
 reads_ch = Channel.fromFilePairs("${params.reads}", checkIfExists: true)
@@ -62,7 +76,7 @@ process TRIMMOMATIC {
     // def qual_trim = task.ext.args2 ?: ''
     def prefix = "${sample_id}"
     def output = "${sample_id}.paired.trim_1.fastq.gz ${sample_id}.unpaired.trim_1.fastq.gz ${sample_id}.paired.trim_2.fastq.gz ${sample_id}.unpaired.trim_2.fastq.gz"
-    def qual_trim = "ILLUMINACLIP:${projectDir}/assets/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
+    def qual_trim = "${params.trimmomatic}"
 
     """
     trimmomatic PE \
