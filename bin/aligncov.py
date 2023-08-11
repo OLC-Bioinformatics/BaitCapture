@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 """
+aligncov.py
+
 Parse a sorted BAM file to generate two tables:
 a table of alignment summary statistics ('_stats.tsv'), including fold-coverages
 (fold_cov) and proportions of target lengths covered by mapped reads (prop_cov),
