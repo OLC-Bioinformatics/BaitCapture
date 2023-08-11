@@ -17,7 +17,7 @@ params.targets = "${launchDir}/targets.fa"
 params.trimmomatic = "ILLUMINACLIP:${projectDir}/assets/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
 // Print help message, supply typical command line usage for the pipeline
 if (params.help) {
-   log.info paramsHelp("nextflow run main.nf --reads sampleid_R{1,2}_001.fastq.gz --targets targets.fa")
+   log.info paramsHelp("nextflow run main.nf --reads \"*_R{1,2}_001.fastq.gz\" --targets targets.fa")
    exit 0
 }
 
@@ -39,6 +39,11 @@ targets_ch = Channel.fromPath("${params.targets}", checkIfExists: true)
 
 process FASTQC {
 
+    conda "bioconda::fastqc=0.11.9"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0' :
+        'biocontainers/fastqc:0.11.9--0' }"
+
     cpus = 4
     tag "FASTQC ${sample_id}"
     publishDir "${params.outdir}/fastqc/", mode: 'copy'
@@ -58,6 +63,11 @@ process FASTQC {
 }
 
 process TRIMMOMATIC {
+
+    conda "bioconda::trimmomatic=0.39"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/trimmomatic:0.39--hdfd78af_2':
+        'biocontainers/trimmomatic:0.39--hdfd78af_2' }"
 
     cpus = 4
     tag "TRIMMOMATIC ${sample_id}"
@@ -92,6 +102,12 @@ process TRIMMOMATIC {
 
 process MULTIQC {
 
+    withName: MULTIQC {
+        conda "bioconda::multiqc=1.15"
+        container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+            'https://depot.galaxyproject.org/singularity/multiqc:1.15--pyhdfd78af_0' :
+            'biocontainers/multiqc:1.15--pyhdfd78af_0' }"
+
     tag "MULTIQC ${multiqc_files}"
     publishDir "${params.outdir}/multiqc/", mode: 'copy'
 
@@ -112,6 +128,12 @@ process MULTIQC {
 
 process BWA_INDEX {
 
+    withName: BWA_INDEX {
+        conda "bioconda::bwa=0.7.17"
+        container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+            'https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7' :
+            'biocontainers/bwa:0.7.17--hed695b0_7' }"
+
     tag "BWA_INDEX ${targets}"
 
     input:
@@ -128,6 +150,12 @@ process BWA_INDEX {
 }
 
 process BWA_ALIGN {
+
+    withName BWA_ALIGN {
+        conda "bioconda::bwa=0.7.17"
+        container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+            'https://depot.galaxyproject.org/singularity/bwa:0.7.17--h5bf99c6_8' :
+            'biocontainers/bwa:0.7.17--h5bf99c6_8' }"
 
     cpus = 8
     tag "BWA_ALIGN ${sample_id}"
