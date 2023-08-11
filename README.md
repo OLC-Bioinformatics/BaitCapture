@@ -1,5 +1,7 @@
 # BaitCapture
 
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A522.10.1-23aa62.svg)](https://www.nextflow.io/)
+
 A bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
 ## Future updates
