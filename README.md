@@ -2,6 +2,11 @@
 
 A bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
+## Future updates
+
+- [ ] Make Trimmomatic step optional.
+- [ ] Add Docker image for `aligncov.py` to allow for the use of `-profile` when executing the workflow.
+
 ## Overview
 
 BaitCapture is an end-to-end bioinformatics workflow used to obtain coverage information for paired-end Illumina sequence reads against a database of target sequences.
