@@ -209,7 +209,7 @@ process ALIGNMENT_COVERAGES {
 
     script:
     """
-    sorted-bam-to-fold-coverage.py -i ${sorted_bam} -o ${sample_id}
+    aligncov.py -i ${sorted_bam} -o ${sample_id}
     """
 
 }
