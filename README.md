@@ -18,6 +18,14 @@ target	seqlen	depth	len_cov	prop_cov	fold_cov
 
 The workflow also outputs a table of read depths for each base pair within each gene target for a more granular view of coverage information.
 
+The steps of the workflow are:
+
+1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
+2. Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
+3. Summarize the FastQC reports and Trimmomatic logs using [MultiQC](https://multiqc.info/).
+4. Index the database of gene targets and align trimmed sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa).
+5. Obtain sequence coverage depth statistics from the alignments using a custom Python script and save tables in TSV format.
+
 ## Installation
 
 Currently, the workflow must be executed from within a local environment, such as a Conda environment with the following dependencies:
