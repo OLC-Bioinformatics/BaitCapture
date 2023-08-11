@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
+  "title": ". pipeline parameters",
+  "description": "",
+  "type": "object",
+  "definitions": {
+      "input_output_options": {
+          "title": "Input/output options",
+          "type": "object",
+          "fa_icon": "fas fa-terminal",
+          "description": "Define where the pipeline should find input data and save output data.",
+          "required": [
+              "reads"
+          ],
+          "properties": {
+              "reads": {
+                  "type": "string",
+                  "description": "A naming pattern for the .fastq.gz files which will be aligned to the targets FASTA file.",
+                  "pattern": "^\\S+{1,2}\\S+.fastq.gz$"
+              },
+              "outdir": {
+                  "type": "string",
+                  "format": "directory-path",
+                  "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+                  "fa_icon": "fas fa-folder-open",
+                  "default": "results/"
+              }
+          }
+      }
+  },
+  "allOf": [
+      {
+          "$ref": "#/definitions/input_output_options"
+      }
+  ],
+  "properties": {
+      "targets": {
+          "type": "string",
+          "description": "The FASTA file containing the DNA sequences used for bait-capture sequencing.",
+          "format": "file-path"
+      },
+      "trimmomatic": {
+          "type": "string",
+          "description": "Command-line arguments for custom Trimmomatic parameters."
+      }
+  },
+  "required": [
+      "targets"
+  ]
+}
