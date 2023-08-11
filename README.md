@@ -92,7 +92,7 @@ The sequence reads will be aligned against the FASTA file provided to `--targets
 
 ### Advanced usage
 
-More usage information can be obtained at any time by running `nextflow main.nf --help`:
+More usage information can be obtained at any time by running `nextflow run main.nf --help`:
 
 ```
 Typical pipeline command:
