@@ -102,11 +102,10 @@ process TRIMMOMATIC {
 
 process MULTIQC {
 
-    withName: MULTIQC {
-        conda "bioconda::multiqc=1.15"
-        container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-            'https://depot.galaxyproject.org/singularity/multiqc:1.15--pyhdfd78af_0' :
-            'biocontainers/multiqc:1.15--pyhdfd78af_0' }"
+    conda "bioconda::multiqc=1.15"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/multiqc:1.15--pyhdfd78af_0' :
+        'biocontainers/multiqc:1.15--pyhdfd78af_0' }"
 
     tag "MULTIQC ${multiqc_files}"
     publishDir "${params.outdir}/multiqc/", mode: 'copy'
@@ -128,11 +127,10 @@ process MULTIQC {
 
 process BWA_INDEX {
 
-    withName: BWA_INDEX {
-        conda "bioconda::bwa=0.7.17"
-        container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-            'https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7' :
-            'biocontainers/bwa:0.7.17--hed695b0_7' }"
+    conda "bioconda::bwa=0.7.17"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7' :
+        'biocontainers/bwa:0.7.17--hed695b0_7' }"
 
     tag "BWA_INDEX ${targets}"
 
@@ -151,11 +149,10 @@ process BWA_INDEX {
 
 process BWA_ALIGN {
 
-    withName BWA_ALIGN {
-        conda "bioconda::bwa=0.7.17"
-        container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-            'https://depot.galaxyproject.org/singularity/bwa:0.7.17--h5bf99c6_8' :
-            'biocontainers/bwa:0.7.17--h5bf99c6_8' }"
+    conda "bioconda::bwa=0.7.17"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bwa:0.7.17--h5bf99c6_8' :
+        'biocontainers/bwa:0.7.17--h5bf99c6_8' }"
 
     cpus = 8
     tag "BWA_ALIGN ${sample_id}"
