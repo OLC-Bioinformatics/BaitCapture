@@ -31,7 +31,7 @@ The steps of the workflow are:
 2. Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
 3. Summarize the FastQC reports and Trimmomatic logs using [MultiQC](https://multiqc.info/).
 4. Index the database of gene targets and align trimmed sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa).
-5. Obtain sequence coverage depth statistics from the alignments using a custom Python script and save tables in TSV format.
+5. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
 
 ## Installation
 
