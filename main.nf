@@ -195,6 +195,11 @@ process BWA_ALIGN {
 
 process ALIGNMENT_COVERAGES {
 
+    conda "bioconda::aligncov=0.0.2"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/aligncov:0.0.2--pyh7cba7a3_0' :
+        'biocontainers/aligncov:0.0.2--pyh7cba7a3_0' }"
+
     tag "ALIGNMENT_COVERAGES ${sample_id}"
     publishDir "${params.outdir}/alignment-coverages/", pattern: "${sample_id}*.tsv", mode: 'copy'
 
@@ -206,7 +211,7 @@ process ALIGNMENT_COVERAGES {
 
     script:
     """
-    aligncov.py -i ${sorted_bam} -o ${sample_id}
+    aligncov -i ${sorted_bam} -o ${sample_id}
     """
 
 }
