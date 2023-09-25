@@ -1,13 +1,15 @@
 # BaitCapture
 
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A522.10.1-23aa62.svg)](https://www.nextflow.io/)
+[![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 A bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
 ## Future updates
 
 - [ ] Make Trimmomatic step optional.
-- [ ] Add Docker image for `aligncov.py` to allow for the use of `-profile` when executing the workflow.
 
 ## Overview
 
@@ -35,43 +37,17 @@ The steps of the workflow are:
 
 ## Installation
 
-Currently, the workflow must be executed from within a local environment, such as a Conda environment with the following dependencies:
+1. Install [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation) (22.10.1+).
+2. Install any of [Docker](https://docs.docker.com/engine/install/), [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/), or [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) package manager.
 
-```
-fastqc=0.12.1
-trimmomatic=0.39
-multiqc=1.15
-bwa=0.7.17
-samtools=1.17
-pandas=2.0.3
-nextflow=23.04.1
-```
 
-Other package versions may work but are untested.
-To create a new Conda environment for running the workflow:
-
-1. [Install Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
-2. [Add Bioconda](https://bioconda.github.io/#usage) to your list of Conda channels and change the channel priorities.
-3. Run the following command:
-
-    ```bash
-    conda create -n baitcapture \
-        fastqc=0.12.1 \
-        trimmomatic=0.39 \
-        multiqc=1.15 \
-        bwa=0.7.17 \
-        samtools=1.17 \
-        pandas=2.0.3 \
-        nextflow=23.04.1
-    ```
-
-   - Note: For quicker package installation, I recommend the use of [`mamba`](https://mamba.readthedocs.io/en/latest/mamba-installation.html#mamba-install) within Conda.
-
-4. Clone the BaitCapture GitHub repo:
+3. Clone the BaitCapture GitHub repo:
 
     ```bash
     git clone https://github.com/pcrxn/BaitCapture.git
     ```
+
+4. Run your analysis with your preferred package manager (`-profile <docker,singularity,conda>`).
 
 ## Usage
 
@@ -81,14 +57,15 @@ After you've installed all of the workflow dependencies, BaitCapture can be run 
 
 ```bash
 cd BaitCapture/
-conda activate baitcapture # or whatever you named your Conda environment
-nextflow run main.nf --reads "*_R{1,2}_001.fastq.gz" --targets targets.fa
+nextflow run main.nf -profile singularity --reads "*_R{1,2}_001.fastq.gz" --targets targets.fa
 ```
 
-This command will use all paired-end sequence reads with the file name pattern of `*_R{1,2}_001.fastq.gz` as input (e.g. CL02392_R1_001.fastq.gz, CL02392_R2_001.fastq.gz).
-**You must use double-quotes** for the file naming pattern to be recognized.
+This command will:
 
-The sequence reads will be aligned against the FASTA file provided to `--targets`.
+  - Use Singularity to manage dependencies.
+  - Use all paired-end sequence reads with the file name pattern of `*_R{1,2}_001.fastq.gz` as input (e.g. CL02392_R1_001.fastq.gz, CL02392_R2_001.fastq.gz).
+    - Important: **You must use double-quotes** for the file naming pattern to be recognized.
+  - Align paired-end sequence reads to the FASTA file `targets.fa`.
 
 ### Advanced usage
 

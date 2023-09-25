@@ -42,7 +42,7 @@ process FASTQC {
     conda "bioconda::fastqc=0.11.9"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0' :
-        'biocontainers/fastqc:0.11.9--0' }"
+        'quay.io/biocontainers/fastqc:0.11.9--0' }"
 
     cpus = 4
     tag "FASTQC ${sample_id}"
@@ -67,7 +67,7 @@ process TRIMMOMATIC {
     conda "bioconda::trimmomatic=0.39"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/trimmomatic:0.39--hdfd78af_2':
-        'biocontainers/trimmomatic:0.39--hdfd78af_2' }"
+        'quay.io/biocontainers/trimmomatic:0.39--hdfd78af_2' }"
 
     cpus = 4
     tag "TRIMMOMATIC ${sample_id}"
@@ -105,7 +105,7 @@ process MULTIQC {
     conda "bioconda::multiqc=1.15"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/multiqc:1.15--pyhdfd78af_0' :
-        'biocontainers/multiqc:1.15--pyhdfd78af_0' }"
+        'quay.io/biocontainers/multiqc:1.15--pyhdfd78af_0' }"
 
     tag "MULTIQC ${multiqc_files}"
     publishDir "${params.outdir}/multiqc/", mode: 'copy'
@@ -130,7 +130,7 @@ process BWA_INDEX {
     conda "bioconda::bwa=0.7.17"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7' :
-        'biocontainers/bwa:0.7.17--hed695b0_7' }"
+        'quay.io/biocontainers/bwa:0.7.17--hed695b0_7' }"
 
     tag "BWA_INDEX ${targets}"
 
@@ -151,49 +151,57 @@ process BWA_ALIGN {
 
     conda "bioconda::bwa=0.7.17"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bwa:0.7.17--h5bf99c6_8' :
-        'biocontainers/bwa:0.7.17--h5bf99c6_8' }"
+        'https://depot.galaxyproject.org/singularity/bwa:0.7.17--he4a0461_11' :
+        'quay.io/biocontainers/bwa:0.7.17--he4a0461_11' }"
 
     cpus = 8
     tag "BWA_ALIGN ${sample_id}"
-    publishDir "${params.outdir}/bwa-alignments/", pattern: "${sample_id}.aligned.sorted.bam", mode: 'copy'
 
     input:
     tuple path(targets), path("*"), val(sample_id), path(reads)
 
     output:
-    tuple val(sample_id), path("${sample_id}.aligned.sorted.bam"), emit: aligned_targets
+    tuple val(sample_id), path("${sample_id}.aligned.sam"), emit: aligned_sam
 
     script:
     """
     INDEX=`find -L ./ -name "*.amb" | sed 's/.amb//'`
     bwa mem -t ${task.cpus} \$INDEX ${reads} > ${sample_id}.aligned.sam
+    """
+
+}
+
+process COVERT_SAM_TO_SORTED_BAM {
+
+    conda "bioconda::samtools=1.17"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/samtools:1.17--hd87286a_1' :
+        'quay.io/biocontainers/samtools:1.17--hd87286a_1' }"
+
+    cpus = 8
+    tag "COVERT_SAM_TO_SORTED_BAM ${sample_id}"
+    publishDir "${params.outdir}/bwa-alignments/", pattern: "${sample_id}.aligned.sorted.bam", mode: 'copy'
+
+    input:
+    tuple val(sample_id), path(aligned_sam)
+
+    output:
+    tuple val(sample_id), path("${sample_id}.aligned.sorted.bam"), emit: aligned_sorted_bam
+
+    script:
+    """
     samtools view --threads ${task.cpus} -S -b ${sample_id}.aligned.sam > ${sample_id}.aligned.bam
     samtools sort --threads ${task.cpus} ${sample_id}.aligned.bam > ${sample_id}.aligned.sorted.bam
     """
 
 }
 
-// process ALIGNMENT_STATS {
-
-//     tag "ALIGNMENT_STATS ${sample_id}"
-//     publishDir "${params.outdir}/alignment-stats/", pattern: "${sample_id}.sorted.bam.stats.tsv", mode: 'copy'
-
-//     input:
-//     tuple val(sample_id), path(sorted_bam)
-
-//     output:
-//     tuple val(sample_id), path("${sample_id}.sorted.bam.stats.tsv"), emit: alignment_stats
-
-//     script:
-//     """
-//     samtools index ${sorted_bam}
-//     samtools stats ${sorted_bam} | grep ^SN | cut -f 2- > ${sample_id}.sorted.bam.stats.tsv    
-//     """
-
-// }
-
 process ALIGNMENT_COVERAGES {
+
+    conda "bioconda::aligncov=0.0.2"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/aligncov:0.0.2--pyh7cba7a3_0' :
+        'quay.io/biocontainers/aligncov:0.0.2--pyh7cba7a3_0' }"
 
     tag "ALIGNMENT_COVERAGES ${sample_id}"
     publishDir "${params.outdir}/alignment-coverages/", pattern: "${sample_id}*.tsv", mode: 'copy'
@@ -206,7 +214,7 @@ process ALIGNMENT_COVERAGES {
 
     script:
     """
-    aligncov.py -i ${sorted_bam} -o ${sample_id}
+    aligncov -i ${sorted_bam} -o ${sample_id}
     """
 
 }
@@ -235,9 +243,9 @@ workflow {
 
     BWA_ALIGN(BWA_INDEX.out.indexed_targets.combine(TRIMMOMATIC.out.trimmed_reads))
 
-    // ALIGNMENT_STATS(BWA_ALIGN.out.aligned_targets)
+    COVERT_SAM_TO_SORTED_BAM(BWA_ALIGN.out.aligned_sam)
 
-    ALIGNMENT_COVERAGES(BWA_ALIGN.out.aligned_targets)
+    ALIGNMENT_COVERAGES(COVERT_SAM_TO_SORTED_BAM.out.aligned_sorted_bam)
 
 }
 
