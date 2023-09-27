@@ -9,6 +9,7 @@ A bioinformatics workflow for processing data obtained from targeted resistome b
 
 ## Future updates
 
+- [ ] Add host DNA decontamination step.
 - [ ] Make Trimmomatic step optional.
 
 ## Overview
