@@ -11,7 +11,7 @@ nextflow.enable.dsl = 2
 include {validateParameters; paramsHelp; paramsSummaryLog} from 'plugin/nf-validation'
 
 // Define parameters
-params.reads = ".*R{1,2}.fastq.gz"
+params.reads = "*R{1,2}.fastq.gz"
 params.outdir = "${launchDir}/results"
 params.targets = "${launchDir}/targets.fa"
 params.trimmomatic = "ILLUMINACLIP:${projectDir}/assets/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
