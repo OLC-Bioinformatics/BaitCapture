@@ -11,7 +11,7 @@ nextflow.enable.dsl = 2
 include {validateParameters; paramsHelp; paramsSummaryLog} from 'plugin/nf-validation'
 
 // Define parameters
-params.reads = ""
+params.reads = "*R{1,2}.fastq.gz"
 params.outdir = "${launchDir}/results"
 params.targets = "${launchDir}/targets.fa"
 params.trimmomatic = "ILLUMINACLIP:${projectDir}/assets/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
@@ -161,17 +161,68 @@ process BWA_ALIGN {
     tuple path(targets), path("*"), val(sample_id), path(reads)
 
     output:
-    tuple val(sample_id), path("${sample_id}.aligned.sam"), emit: aligned_sam
+    tuple val(sample_id), path("${sample_id}.bwa.aligned.sam"), emit: aligned_sam
 
     script:
     """
     INDEX=`find -L ./ -name "*.amb" | sed 's/.amb//'`
-    bwa mem -t ${task.cpus} \$INDEX ${reads} > ${sample_id}.aligned.sam
+    bwa mem -t ${task.cpus} \$INDEX ${reads} > ${sample_id}.bwa.aligned.sam
     """
 
 }
 
-process COVERT_SAM_TO_SORTED_BAM {
+process KMA_INDEX {
+
+    conda "bioconda::kma=1.4.9"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/kma:1.4.9--he4a0461_2' :
+        'quay.io/biocontainers/kma:1.4.9--he4a0461_2' }"
+
+    tag "KMA_INDEX ${targets}"
+
+    input:
+    path targets
+
+    output:
+    tuple path(targets), path("*"), emit: indexed_targets
+
+    script:
+    """
+    kma index -i ${targets} -o targets.kma
+    """
+
+}
+
+process KMA_ALIGN {
+
+    conda "bioconda::kma=1.4.9"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/kma:1.4.9--he4a0461_2' :
+        'quay.io/biocontainers/kma:1.4.9--he4a0461_2' }"
+
+    cpus = 8
+    tag "KMA_ALIGN ${sample_id}"   
+
+    input:
+    tuple path(indexed_targets), path("*"), val(sample_id), path(reads)
+
+    output:
+    tuple val(sample_id), path("${sample_id}.kma.aligned.sam"), emit: aligned_sam
+
+    script:
+    """
+    kma -mem_mode -ex_mode -1t1 -vcf \
+        -t ${task.cpus} \
+        -ipe ${reads} \
+        -t_db targets.kma \
+        -o ${sample_id}.kma.aligned.temp \
+        -sam \
+        > ${sample_id}.kma.aligned.sam
+    """
+
+}
+
+process CONVERT_SAM_TO_SORTED_BAM_BWA {
 
     conda "bioconda::samtools=1.17"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -179,32 +230,57 @@ process COVERT_SAM_TO_SORTED_BAM {
         'quay.io/biocontainers/samtools:1.17--hd87286a_1' }"
 
     cpus = 8
-    tag "COVERT_SAM_TO_SORTED_BAM ${sample_id}"
-    publishDir "${params.outdir}/bwa-alignments/", pattern: "${sample_id}.aligned.sorted.bam", mode: 'copy'
+    tag "CONVERT_SAM_TO_SORTED_BAM_BWA ${sample_id}"
+    publishDir "${params.outdir}/bwa/", pattern: "${sample_id}.bwa.aligned.sorted.bam", mode: 'copy'
 
     input:
     tuple val(sample_id), path(aligned_sam)
 
     output:
-    tuple val(sample_id), path("${sample_id}.aligned.sorted.bam"), emit: aligned_sorted_bam
+    tuple val(sample_id), path("${sample_id}.bwa.aligned.sorted.bam"), emit: aligned_sorted_bam
 
     script:
     """
-    samtools view --threads ${task.cpus} -S -b ${sample_id}.aligned.sam > ${sample_id}.aligned.bam
-    samtools sort --threads ${task.cpus} ${sample_id}.aligned.bam > ${sample_id}.aligned.sorted.bam
+    samtools view --threads ${task.cpus} -S -b ${sample_id}.bwa.aligned.sam > ${sample_id}.bwa.aligned.bam
+    samtools sort --threads ${task.cpus} ${sample_id}.bwa.aligned.bam > ${sample_id}.bwa.aligned.sorted.bam
     """
 
 }
 
-process ALIGNMENT_COVERAGES {
+process CONVERT_SAM_TO_SORTED_BAM_KMA {
+
+    conda "bioconda::samtools=1.17"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/samtools:1.17--hd87286a_1' :
+        'quay.io/biocontainers/samtools:1.17--hd87286a_1' }"
+
+    cpus = 8
+    tag "CONVERT_SAM_TO_SORTED_BAM_KMA ${sample_id}"
+    publishDir "${params.outdir}/kma/", pattern: "${sample_id}.kma.aligned.sorted.bam", mode: 'copy'
+
+    input:
+    tuple val(sample_id), path(aligned_sam)
+
+    output:
+    tuple val(sample_id), path("${sample_id}.kma.aligned.sorted.bam"), emit: aligned_sorted_bam
+
+    script:
+    """
+    samtools view --threads ${task.cpus} -S -b ${sample_id}.kma.aligned.sam > ${sample_id}.kma.aligned.bam
+    samtools sort --threads ${task.cpus} ${sample_id}.kma.aligned.bam > ${sample_id}.kma.aligned.sorted.bam
+    """
+
+}
+
+process ALIGNMENT_COVERAGES_BWA {
 
     conda "bioconda::aligncov=0.0.2"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/aligncov:0.0.2--pyh7cba7a3_0' :
         'quay.io/biocontainers/aligncov:0.0.2--pyh7cba7a3_0' }"
 
-    tag "ALIGNMENT_COVERAGES ${sample_id}"
-    publishDir "${params.outdir}/alignment-coverages/", pattern: "${sample_id}*.tsv", mode: 'copy'
+    tag "ALIGNMENT_COVERAGES_BWA ${sample_id}"
+    publishDir "${params.outdir}/bwa/", pattern: "${sample_id}*.tsv", mode: 'copy'
 
     input:
     tuple val(sample_id), path(sorted_bam)
@@ -214,7 +290,30 @@ process ALIGNMENT_COVERAGES {
 
     script:
     """
-    aligncov -i ${sorted_bam} -o ${sample_id}
+    aligncov -i ${sorted_bam} -o ${sample_id}.bwa
+    """
+
+}
+
+process ALIGNMENT_COVERAGES_KMA {
+
+    conda "bioconda::aligncov=0.0.2"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/aligncov:0.0.2--pyh7cba7a3_0' :
+        'quay.io/biocontainers/aligncov:0.0.2--pyh7cba7a3_0' }"
+
+    tag "ALIGNMENT_COVERAGES_KMA ${sample_id}"
+    publishDir "${params.outdir}/kma/", pattern: "${sample_id}*.tsv", mode: 'copy'
+
+    input:
+    tuple val(sample_id), path(sorted_bam)
+
+    output:
+    tuple val(sample_id), path("*.tsv"), emit: alignment_coverages
+
+    script:
+    """
+    aligncov -i ${sorted_bam} -o ${sample_id}.kma
     """
 
 }
@@ -243,9 +342,17 @@ workflow {
 
     BWA_ALIGN(BWA_INDEX.out.indexed_targets.combine(TRIMMOMATIC.out.trimmed_reads))
 
-    COVERT_SAM_TO_SORTED_BAM(BWA_ALIGN.out.aligned_sam)
+    KMA_INDEX(targets_ch)
 
-    ALIGNMENT_COVERAGES(COVERT_SAM_TO_SORTED_BAM.out.aligned_sorted_bam)
+    KMA_ALIGN(KMA_INDEX.out.indexed_targets.combine(TRIMMOMATIC.out.trimmed_reads))
+
+    CONVERT_SAM_TO_SORTED_BAM_BWA(BWA_ALIGN.out.aligned_sam)
+
+    CONVERT_SAM_TO_SORTED_BAM_KMA(KMA_ALIGN.out.aligned_sam)
+
+    ALIGNMENT_COVERAGES_BWA(CONVERT_SAM_TO_SORTED_BAM_BWA.out.aligned_sorted_bam)
+
+    ALIGNMENT_COVERAGES_KMA(CONVERT_SAM_TO_SORTED_BAM_KMA.out.aligned_sorted_bam)    
 
 }
 
