@@ -231,7 +231,7 @@ process CONVERT_SAM_TO_SORTED_BAM_BWA {
 
     cpus = 8
     tag "CONVERT_SAM_TO_SORTED_BAM_BWA ${sample_id}"
-    publishDir "${params.outdir}/bwa-alignments/", pattern: "${sample_id}.bwa.aligned.sorted.bam", mode: 'copy'
+    publishDir "${params.outdir}/bwa/", pattern: "${sample_id}.bwa.aligned.sorted.bam", mode: 'copy'
 
     input:
     tuple val(sample_id), path(aligned_sam)
@@ -256,7 +256,7 @@ process CONVERT_SAM_TO_SORTED_BAM_KMA {
 
     cpus = 8
     tag "CONVERT_SAM_TO_SORTED_BAM_KMA ${sample_id}"
-    publishDir "${params.outdir}/kma-alignments/", pattern: "${sample_id}.kma.aligned.sorted.bam", mode: 'copy'
+    publishDir "${params.outdir}/kma/", pattern: "${sample_id}.kma.aligned.sorted.bam", mode: 'copy'
 
     input:
     tuple val(sample_id), path(aligned_sam)
@@ -280,7 +280,7 @@ process ALIGNMENT_COVERAGES_BWA {
         'quay.io/biocontainers/aligncov:0.0.2--pyh7cba7a3_0' }"
 
     tag "ALIGNMENT_COVERAGES_BWA ${sample_id}"
-    publishDir "${params.outdir}/bwa-alignment-coverages/", pattern: "${sample_id}*.tsv", mode: 'copy'
+    publishDir "${params.outdir}/bwa/", pattern: "${sample_id}*.tsv", mode: 'copy'
 
     input:
     tuple val(sample_id), path(sorted_bam)
@@ -303,7 +303,7 @@ process ALIGNMENT_COVERAGES_KMA {
         'quay.io/biocontainers/aligncov:0.0.2--pyh7cba7a3_0' }"
 
     tag "ALIGNMENT_COVERAGES_KMA ${sample_id}"
-    publishDir "${params.outdir}/kma-alignment-coverages/", pattern: "${sample_id}*.tsv", mode: 'copy'
+    publishDir "${params.outdir}/kma/", pattern: "${sample_id}*.tsv", mode: 'copy'
 
     input:
     tuple val(sample_id), path(sorted_bam)
