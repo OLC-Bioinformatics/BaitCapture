@@ -78,11 +78,11 @@ Typical pipeline command:
   nextflow run main.nf --reads "*_R{1,2}_001.fastq.gz" --targets targets.fa
 
 Input/output options
-  --reads       [string]  A naming pattern for the .fastq.gz files which will be aligned to the targets FASTA file.
+  --reads       [string]  A naming pattern for the .fastq.gz files which will be aligned to the targets FASTA file. [default: .*R{1,2}.fastq.gz]
+  --targets     [string]  The FASTA file containing the DNA sequences used for bait-capture sequencing.
   --outdir      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure. [default: 
                           results/] 
 
 Other parameters
-  --targets     [string]  The FASTA file containing the DNA sequences used for bait-capture sequencing.
   --trimmomatic [string]  Command-line arguments for custom Trimmomatic parameters.
 ```
