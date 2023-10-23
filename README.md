@@ -33,7 +33,7 @@ The steps of the workflow are:
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 2. Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
 3. Summarize the FastQC reports and Trimmomatic logs using [MultiQC](https://multiqc.info/).
-4. Index the database of gene targets and align trimmed sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa).
+4. Index the database of gene targets and align trimmed sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa) and [KMA](https://bitbucket.org/genomicepidemiology/kma).
 5. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
 
 ## Installation
