@@ -9,7 +9,6 @@ A bioinformatics workflow for processing data obtained from targeted resistome b
 
 ## Future updates
 
-- [ ] Add host DNA decontamination step.
 - [ ] Make Trimmomatic step optional.
 
 ## Overview
@@ -33,8 +32,9 @@ The steps of the workflow are:
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 2. Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
 3. Summarize the FastQC reports and Trimmomatic logs using [MultiQC](https://multiqc.info/).
-4. Index the database of gene targets and align trimmed sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa).
-5. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
+4. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [BWA MEM](https://github.com/lh3/bwa).
+5. Align trimmed (decontaminated) sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa) and [KMA](https://bitbucket.org/genomicepidemiology/kma).
+6. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
 
 ## Installation
 
@@ -63,7 +63,7 @@ nextflow run main.nf -profile singularity --reads "*_R{1,2}_001.fastq.gz" --targ
 
 This command will:
 
-  - Use Singularity to manage dependencies.
+  - Use Singularity to manage the software environment.
   - Use all paired-end sequence reads with the file name pattern of `*_R{1,2}_001.fastq.gz` as input (e.g. CL02392_R1_001.fastq.gz, CL02392_R2_001.fastq.gz).
     - Important: **You must use double-quotes** for the file naming pattern to be recognized.
   - Align paired-end sequence reads to the FASTA file `targets.fa`.
@@ -78,11 +78,12 @@ Typical pipeline command:
   nextflow run main.nf --reads "*_R{1,2}_001.fastq.gz" --targets targets.fa
 
 Input/output options
-  --reads       [string]  A naming pattern for the .fastq.gz files which will be aligned to the targets FASTA file.
+  --reads       [string]  The .fastq.gz files which will be aligned to the targets FASTA file. [default: .*R{1,2}.fastq.gz]
+  --targets     [string]  The FASTA file containing the DNA sequences used for bait-capture sequencing.
   --outdir      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure. [default: 
                           results/] 
 
 Other parameters
-  --targets     [string]  The FASTA file containing the DNA sequences used for bait-capture sequencing.
+  --host        [string]  A FASTA file of a host reference genome to use for host read decontamination.
   --trimmomatic [string]  Command-line arguments for custom Trimmomatic parameters.
 ```
