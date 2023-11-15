@@ -5,11 +5,7 @@
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
-A bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
-
-## Future updates
-
-- [ ] Make Trimmomatic step optional.
+**BaitCapture** is a bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
 ## Overview
 
@@ -30,60 +26,112 @@ The workflow also outputs a table of read depths for each base pair within each 
 The steps of the workflow are:
 
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
-2. Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
-3. Summarize the FastQC reports and Trimmomatic logs using [MultiQC](https://multiqc.info/).
-4. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [BWA MEM](https://github.com/lh3/bwa).
-5. Align trimmed (decontaminated) sequence reads against the database using [BWA MEM](https://github.com/lh3/bwa) and [KMA](https://bitbucket.org/genomicepidemiology/kma).
+2. (Optional) Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
+3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
+4. Align trimmed and/or decontaminated reads against the database of gene targets using 
+5. Align trimmed (decontaminated) sequence reads against the database using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
 6. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
-
-## Installation
-
-1. Install [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html#installation) (22.10.1+).
-2. Install any of [Docker](https://docs.docker.com/engine/install/), [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/), or [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) package manager.
-
-
-3. Clone the BaitCapture GitHub repo:
-
-    ```bash
-    git clone https://github.com/pcrxn/BaitCapture.git
-    ```
-
-4. Run your analysis with your preferred package manager (`-profile <docker,singularity,conda>`).
 
 ## Usage
 
-### Quick start
+If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
+to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
+with `-profile test` before running the workflow on actual data.
 
-After you've installed all of the workflow dependencies, BaitCapture can be run with the following commands:
+Please provide pipeline parameters via the CLI or Nextflow `-params-file` option.
+Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
+see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+
+BaitCapture can be run using two different input types:
+
+- A **samplesheet**, including sample names and paths to paired-end gzipped FASTQ files, or
+- A **folder** containing paired-end gzipped FASTQ files.
+
+### Input type: Samplesheet
+
+First, prepare a samplesheet with your input data that looks as follows:
+
+`samplesheet.csv`:
+
+```csv
+sample,fastq_1,fastq_2
+CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+```
+
+Each row represents a gzipped FASTQ file.
+
+Now, you can run the pipeline using:
 
 ```bash
-cd BaitCapture/
-nextflow run main.nf -profile singularity --reads "*_R{1,2}_001.fastq.gz" --targets targets.fa
+nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+   -profile <docker/singularity/.../institute> \
+   --input samplesheet.csv \
+   --targets targets.fa \
+   --outdir <OUTDIR>
 ```
 
-This command will:
+### Input type: Folder
 
-  - Use Singularity to manage the software environment.
-  - Use all paired-end sequence reads with the file name pattern of `*_R{1,2}_001.fastq.gz` as input (e.g. CL02392_R1_001.fastq.gz, CL02392_R2_001.fastq.gz).
-    - Important: **You must use double-quotes** for the file naming pattern to be recognized.
-  - Align paired-end sequence reads to the FASTA file `targets.fa`.
+Instead of a samplesheet, the user can instead provide a path to a directory containing gzipped FASTQ files.
+In this case, the sample name will be the name of the file up until the first period (`.`).
 
-### Advanced usage
+For example, for a folder `data/` that looks as follows:
 
-More usage information can be obtained at any time by running `nextflow run main.nf --help`:
-
+```bash
+data
+├── ERR9958133_R1.fastq.gz
+├── ERR9958133_R2.fastq.gz
+├── ERR9958134_R1.fastq.gz
+└── ERR9958134_R2.fastq.gz
 ```
-Typical pipeline command:
 
-  nextflow run main.nf --reads "*_R{1,2}_001.fastq.gz" --targets targets.fa
+The pipeline can be run using:
 
-Input/output options
-  --reads       [string]  The .fastq.gz files which will be aligned to the targets FASTA file. [default: .*R{1,2}.fastq.gz]
-  --targets     [string]  The FASTA file containing the DNA sequences used for bait-capture sequencing.
-  --outdir      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure. [default: 
-                          results/] 
-
-Other parameters
-  --host        [string]  A FASTA file of a host reference genome to use for host read decontamination.
-  --trimmomatic [string]  Command-line arguments for custom Trimmomatic parameters.
+```bash
+nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+   -profile <docker/singularity/.../institute> \
+   --input_folder data/ \
+   --targets targets.fa \
+   --outdir <OUTDIR>
 ```
+
+If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
+
+## Contributions and support
+
+If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
+
+## Citations
+
+An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
+
+This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) initative, including [nf-core/mag](https://github.com/nf-core/mag) and [nf-core/ampliseq](https://github.com/nf-core/ampliseq), and reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
+
+
+> Ewels PA, Peltzer A, Fillinger S, Patel H, Alneberg J, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. The nf-core framework for community-curated bioinformatics pipelines. Nat Biotechnol. 2020 Mar;38(3):276-278. doi: 10.1038/s41587-020-0439-x. PubMed PMID: 32055031.
+
+In addition, references of tools and data used in this pipeline are as follows:
+
+- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+
+  > Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
+
+- [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
+
+  > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
+
+- [Bowtie2](https://www.nature.com/articles/nmeth.1923)
+
+  > Langmead, B, Salzberg, S. Fast gapped-read alignment with Bowtie 2. Nat Methods. 2012;9:357-359. doi: 10.1038/nmeth.1923
+
+- [BWA-MEM2](https://ieeexplore.ieee.org/document/8820962)
+
+  > Vasimuddin M, Misra S, Li H, Aluru S. Efficient architecture-aware acceleration of BWA-MEM for multicore systems. IEEE Parallel and Distributed Processing Symposium (IPDPS). 2019;19028010. doi: 10.1109/IPDPS.2019.00041
+
+- [Trimmomatic](https://academic.oup.com/bioinformatics/article/30/15/2114/2390096)
+
+  > Bolger AM, Lohse M, Usadel B. Trimmomatic: a flexible trimmer for Illumina sequence data. Bioinformatics. 2014;30(15):2114-2120. doi: 10.1093/bioinformatics/btu170
+
+- [AlignCov](https://github.com/pcrxn/aligncov)
+
+  > Brown LP. (2023) AlignCov [Online].

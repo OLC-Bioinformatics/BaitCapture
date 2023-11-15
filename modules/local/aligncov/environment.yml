@@ -1,0 +1,7 @@
+name: aligncov
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconda::aligncov=0.0.2
