@@ -28,9 +28,8 @@ The steps of the workflow are:
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 2. (Optional) Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
 3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
-4. Align trimmed and/or decontaminated reads against the database of gene targets using 
-5. Align trimmed (decontaminated) sequence reads against the database using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
-6. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
+4. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
+5. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
 
 ## Usage
 
