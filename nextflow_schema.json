@@ -69,6 +69,13 @@
                     "description": "Naming of sequencing files.",
                     "help_text": "Indicates the naming of sequencing files (default: `\"/*.fastq.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required.\n2. The star (`*`) is the required wildcard for sample names.\n3. The pattern must be enclosed in quotes."
                 },
+                "host": {
+                    "type": "string",
+                    "fa_icon": "fas fa-dna",
+                    "description": "Path to FASTA file of host genome to use for host DNA removal (decontamination).",
+                    "format": "file-path",
+                    "mimetype": "text/csv"
+                },
                 "skip_trimmomatic": {
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
