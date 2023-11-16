@@ -127,10 +127,10 @@ workflow BAITCAPTURE {
     //
     if (params.host) {
         if (!params.skip_trimmomatic) {
-            BOWTIE2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index)
+            BOWTIE2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
             ch_trimmed_reads_decontaminated = BOWTIE2_HOST_REMOVAL_ALIGN.out.reads
         } else {
-            BOWTIE2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index)
+            BOWTIE2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
             ch_reads_decontaminated = BOWTIE2_HOST_REMOVAL_ALIGN.out.reads
         }
         ch_versions = ch_versions.mix(BOWTIE2_HOST_REMOVAL_ALIGN.out.versions.first())
@@ -149,20 +149,20 @@ workflow BAITCAPTURE {
     if (!params.skip_trimmomatic) {
 
         if (params.host) {
-            BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets, 'sort')
+            BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         } else {
-            BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets, 'sort')
+            BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam            
         }
 
     } else {
 
         if (params.host) {
-            BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets, 'sort')
+            BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         } else {
-            BWAMEM2_ALIGN(ch_treads, ch_indexed_targets, 'sort')
+            BWAMEM2_ALIGN(ch_treads, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         }
 
