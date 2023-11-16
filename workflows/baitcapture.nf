@@ -103,13 +103,6 @@ workflow BAITCAPTURE {
         }
     }
 
-    //----------------------------------
-    // FOR DEBUGGING BWAMEM2_MEM ISSUE:
-    //----------------------------------
-    // ch_reads.view()
-    // ch_reads.collect().view()
-    // ch_targets.view()
-
     //
     // MODULE: FASTQC
     //
@@ -139,10 +132,10 @@ workflow BAITCAPTURE {
     //
     if (params.host) {
         if (!params.skip_trimmomatic) {
-            BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index)
+            BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
             ch_trimmed_reads_decontaminated = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         } else {
-            BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index)
+            BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
             ch_reads_decontaminated = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         }
         ch_versions = ch_versions.mix(BWAMEM2_HOST_REMOVAL_ALIGN.out.versions.first())
@@ -178,18 +171,18 @@ workflow BAITCAPTURE {
     //
     if (!params.skip_trimmomatic) {
         if (params.host) {
-            BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets, true)
+            BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         } else {
-            BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets, true)
+            BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam            
         }
     } else {
         if (params.host) {
-            BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets, true)
+            BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         } else {
-            BWAMEM2_ALIGN(ch_reads, ch_indexed_targets, true)
+            BWAMEM2_ALIGN(ch_reads, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         }
     }
