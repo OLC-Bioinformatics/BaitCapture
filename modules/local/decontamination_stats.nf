@@ -2,10 +2,10 @@ process DECONTAMINATION_STATS {
     tag "$meta.id"
     label 'process_single'
 
-    conda "bioconda::samtools=1.17"
+    conda "bioconda::samtools=1.18"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/samtools:1.17--hd87286a_1' :
-        'quay.io/biocontainers/samtools:1.17--hd87286a_1' }"
+        'https://depot.galaxyproject.org/singularity/samtools:1.18--hd87286a_0' :
+        'biocontainers/samtools:1.18--hd87286a_0' }"
 
     input:
     tuple val(meta), path(forward_reads), path(decontaminated_forward_reads)
@@ -13,6 +13,9 @@ process DECONTAMINATION_STATS {
     output:
     tuple val(meta), path("*_decontamination_stats.csv"), emit: decontamination_stats
     path  "versions.yml"          , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
