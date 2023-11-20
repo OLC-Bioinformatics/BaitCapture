@@ -11,10 +11,10 @@ report_section_order:
 
 export_plots: true
 
-data_format: "yaml"
+data_format: "tsv"
 
-run_modules:
-  - fastqc
+# run_modules:
+#   - fastqc
 
 top_modules:
   - "fastqc":
