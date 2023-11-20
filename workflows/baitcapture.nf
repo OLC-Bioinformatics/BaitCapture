@@ -47,14 +47,16 @@ include { ALIGNCOV as ALIGNCOV_BWAMEM2  } from '../modules/local/aligncov/main'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                        } from '../modules/nf-core/fastqc/main'
+include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
+include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { TRIMMOMATIC                   } from '../modules/nf-core/trimmomatic/main'
 include { BWAMEM2_INDEX as BWAMEM2_BUILD } from '../modules/nf-core/bwamem2/index/main'
+include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD } from '../modules/nf-core/bwamem2/index/main'
 include { BWAMEM2_MEM as BWAMEM2_ALIGN  } from '../modules/nf-core/bwamem2/mem/main'
-include { BOWTIE2_REMOVAL_BUILD as BOWTIE2_HOST_REMOVAL_BUILD } from '../modules/local/bowtie2_removal_build'
-include { BOWTIE2_REMOVAL_ALIGN as BOWTIE2_HOST_REMOVAL_ALIGN } from '../modules/local/bowtie2_removal_align'
+include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem/main'
+include { DECONTAMINATION_STATS         } from '../modules/local/decontamination_stats.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,14 +97,18 @@ workflow BAITCAPTURE {
     }
 
     if (params.host) {
-        ch_host = Channel.fromPath(params.host, checkIfExists: true)
+        ch_host = Channel.fromPath(params.host, checkIfExists: true).map{
+            def meta = [:]
+            meta.id = 'host'
+            [meta, it]
+        }
     }
 
     //
-    // MODULE: FASTQC
+    // MODULE: FASTQC_RAW
     //
-    FASTQC(ch_reads)
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    FASTQC_RAW(ch_reads)
+    ch_versions = ch_versions.mix(FASTQC_RAW.out.versions.first())
 
     //
     // MODULE: TRIMMOMATIC
@@ -114,26 +120,62 @@ workflow BAITCAPTURE {
     }
 
     //
-    // MODULE: BOWTIE2_HOST_REMOVAL_BUILD
+    // MODULE: BWAMEM2_HOST_REMOVAL_BUILD
     //
     if (params.host) {
-        BOWTIE2_HOST_REMOVAL_BUILD(ch_host)
-        ch_host_index = BOWTIE2_HOST_REMOVAL_BUILD.out.index
-        ch_versions = ch_versions.mix(BOWTIE2_HOST_REMOVAL_BUILD.out.versions.first())
+        BWAMEM2_HOST_REMOVAL_BUILD(ch_host)
+        ch_host_index = BWAMEM2_HOST_REMOVAL_BUILD.out.index
+        ch_versions = ch_versions.mix(BWAMEM2_HOST_REMOVAL_BUILD.out.versions.first())
     }
 
     //
-    // MODULE: BOWTIE2_HOST_REMOVAL_ALIGN
+    // MODULE: BWAMEM2_HOST_REMOVAL_ALIGN
     //
     if (params.host) {
         if (!params.skip_trimmomatic) {
-            BOWTIE2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
-            ch_trimmed_reads_decontaminated = BOWTIE2_HOST_REMOVAL_ALIGN.out.reads
+            BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
+            ch_trimmed_reads_decontaminated = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         } else {
-            BOWTIE2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
-            ch_reads_decontaminated = BOWTIE2_HOST_REMOVAL_ALIGN.out.reads
+            BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
+            ch_reads_decontaminated = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         }
-        ch_versions = ch_versions.mix(BOWTIE2_HOST_REMOVAL_ALIGN.out.versions.first())
+        ch_versions = ch_versions.mix(BWAMEM2_HOST_REMOVAL_ALIGN.out.versions.first())
+    }
+
+    //
+    // MODULE: DECONTAMINATION_STATS
+    //
+    if (params.host) {
+        if (!params.skip_trimmomatic) {
+            DECONTAMINATION_STATS(
+                ch_trimmed_reads.map{ meta, reads -> [meta, reads[0]] }
+                .join(ch_trimmed_reads_decontaminated.map{ meta, reads -> [meta, reads[0]] })
+                )
+        } else {
+            DECONTAMINATION_STATS(
+                ch_reads.map{ meta, reads -> [meta, reads[0]] }
+                .join(ch_reads_decontaminated.map{ meta, reads -> [meta, reads[0]] })
+                )
+        }
+        ch_versions = ch_versions.mix(DECONTAMINATION_STATS.out.versions.first())        
+    }
+
+    //
+    // MODULE: FASTQC_PREPROCESSED
+    //
+    if (params.host) {
+        if (!params.skip_trimmomatic) {
+            FASTQC_PREPROCESSED(ch_trimmed_reads_decontaminated)
+        } else {
+            FASTQC_PREPROCESSED(ch_reads_decontaminated)
+        }
+    } else {
+        if (!params.skip_trimmomatic) {
+            FASTQC_PREPROCESSED(ch_trimmed_reads)
+        }
+    }
+    if (params.host || !params.skip_trimmomatic) {
+        ch_versions = ch_versions.mix(FASTQC_PREPROCESSED.out.versions.first())
     }
 
     //
@@ -147,7 +189,6 @@ workflow BAITCAPTURE {
     // MODULE: BWAMEM2_ALIGN
     //
     if (!params.skip_trimmomatic) {
-
         if (params.host) {
             BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
@@ -155,17 +196,14 @@ workflow BAITCAPTURE {
             BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam            
         }
-
     } else {
-
         if (params.host) {
             BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         } else {
-            BWAMEM2_ALIGN(ch_treads, ch_indexed_targets.collect(), true)
+            BWAMEM2_ALIGN(ch_reads, ch_indexed_targets.collect(), true)
             ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
         }
-
     }
     ch_versions = ch_versions.mix(BWAMEM2_ALIGN.out.versions.first())
 
@@ -194,10 +232,12 @@ workflow BAITCAPTURE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BOWTIE2_HOST_REMOVAL_ALIGN.out.log.collect{it[1]}.ifEmpty([]))
-    if (!params.skip_trimmomatic) {
-        ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(FASTQC_RAW.out.zip.collect{it[1]}.ifEmpty([]))
+    // if (!params.skip_trimmomatic) {
+    //     ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
+    // }
+    if (params.host || !params.skip_trimmomatic) {
+        ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
     // TODO: Add process outputs for MultiQC input here
 
