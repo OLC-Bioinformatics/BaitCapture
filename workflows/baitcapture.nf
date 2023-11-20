@@ -47,7 +47,8 @@ include { ALIGNCOV as ALIGNCOV_BWAMEM2  } from '../modules/local/aligncov/main'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                        } from '../modules/nf-core/fastqc/main'
+include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
+include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { TRIMMOMATIC                   } from '../modules/nf-core/trimmomatic/main'
@@ -104,10 +105,10 @@ workflow BAITCAPTURE {
     }
 
     //
-    // MODULE: FASTQC
+    // MODULE: FASTQC_RAW
     //
-    FASTQC(ch_reads)
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    FASTQC_RAW(ch_reads)
+    ch_versions = ch_versions.mix(FASTQC_RAW.out.versions.first())
 
     //
     // MODULE: TRIMMOMATIC
@@ -157,6 +158,24 @@ workflow BAITCAPTURE {
                 )
         }
         ch_versions = ch_versions.mix(DECONTAMINATION_STATS.out.versions.first())        
+    }
+
+    //
+    // MODULE: FASTQC_PREPROCESSED
+    //
+    if (params.host) {
+        if (!params.skip_trimmomatic) {
+            FASTQC_PREPROCESSED(ch_trimmed_reads_decontaminated)
+        } else {
+            FASTQC_PREPROCESSED(ch_reads_decontaminated)
+        }
+    } else {
+        if (!params.skip_trimmomatic) {
+            FASTQC_PREPROCESSED(ch_trimmed_reads)
+        }
+    }
+    if (params.host || !params.skip_trimmomatic) {
+        ch_versions = ch_versions.mix(FASTQC_PREPROCESSED.out.versions.first())
     }
 
     //
@@ -213,9 +232,12 @@ workflow BAITCAPTURE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-    if (!params.skip_trimmomatic) {
-        ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(FASTQC_RAW.out.zip.collect{it[1]}.ifEmpty([]))
+    // if (!params.skip_trimmomatic) {
+    //     ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
+    // }
+    if (params.host || !params.skip_trimmomatic) {
+        ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
     // TODO: Add process outputs for MultiQC input here
 
