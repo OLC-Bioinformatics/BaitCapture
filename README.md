@@ -28,8 +28,10 @@ The steps of the workflow are:
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 2. (Optional) Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
 3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
-4. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
-5. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
+4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
+5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
+6. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
+7. Create a summary report with [MultiQC](https://github.com/ewels/MultiQC).
 
 ## Usage
 
@@ -95,6 +97,55 @@ nextflow run OLC-LOC-Bioinformatics/BaitCapture \
 ```
 
 If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
+
+## Advanced usage
+
+More usage information can be obtained at any time by running `nextflow run OLC-LOC-Bioinformatics/BaitCapture --help`:
+
+```
+$ nextflow run OLC-LOC-Bioinformatics/BaitCapture --help
+N E X T F L O W  ~  version 23.04.2
+NOTE: Your local project version looks outdated - a different revision is available in the remote repository [0098df80f4]
+Launching `https://github.com/OLC-LOC-Bioinformatics/BaitCapture` [astonishing_dalembert] DSL2 - revision: 2586d762db [use-bwa-for-host-decontam]
+
+
+------------------------------------------------------
+  olc/baitcapture v1.0dev-g2586d76
+------------------------------------------------------
+Typical pipeline command:
+
+  nextflow run olc/baitcapture --input samplesheet.csv --targets targets.fa -profile docker
+
+Input/output options
+  --targets                          [string]  Path to FASTA file of gene targets for alignment.
+  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
+                                               infrastructure. 
+  --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
+  --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
+  --email                            [string]  Email address for completion summary.
+  --multiqc_title                    [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
+
+Workflow execution options
+  --extension                        [string]  Naming of sequencing files. [default: /*.fastq.gz]
+  --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
+  --skip_trimmomatic                 [boolean] Indicate whether to skip trimming of raw reads.
+  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 
+                                               MINLEN:36] 
+
+Generic options
+  --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
+
+ !! Hiding 23 params, use --validationShowHiddenParams to show them !!
+------------------------------------------------------
+If you use olc/baitcapture for your analysis please cite:
+
+* The nf-core framework
+  https://doi.org/10.1038/s41587-020-0439-x
+
+* Software dependencies
+  https://github.com/olc/baitcapture/blob/master/CITATIONS.md
+------------------------------------------------------
+```
 
 ## Contributions and support
 
