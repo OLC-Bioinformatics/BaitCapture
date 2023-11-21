@@ -56,7 +56,8 @@ include { BWAMEM2_INDEX as BWAMEM2_BUILD } from '../modules/nf-core/bwamem2/inde
 include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD } from '../modules/nf-core/bwamem2/index/main'
 include { BWAMEM2_MEM as BWAMEM2_ALIGN  } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem/main'
-include { DECONTAMINATION_STATS         } from '../modules/local/decontamination_stats.nf'
+// include { DECONTAMINATION_STATS         } from '../modules/local/decontamination_stats.nf'
+include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,21 +144,21 @@ workflow BAITCAPTURE {
     }
 
     //
-    // MODULE: DECONTAMINATION_STATS
+    // MODULE: PREPROCESS_STATS
     //
     if (params.host) {
         if (!params.skip_trimmomatic) {
-            DECONTAMINATION_STATS(
-                ch_trimmed_reads.map{ meta, reads -> [meta, reads[0]] }
-                .join(ch_trimmed_reads_decontaminated.map{ meta, reads -> [meta, reads[0]] })
-                )
+            PREPROCESS_STATS(ch_reads, ch_trimmed_reads_decontaminated)
         } else {
-            DECONTAMINATION_STATS(
-                ch_reads.map{ meta, reads -> [meta, reads[0]] }
-                .join(ch_reads_decontaminated.map{ meta, reads -> [meta, reads[0]] })
-                )
+            PREPROCESS_STATS(ch_reads, ch_reads_decontaminated)
+        }     
+    } else {
+        if (!params.skip_trimmomatic) {
+            PREPROCESS_STATS(ch_reads, ch_trimmed_reads)
         }
-        ch_versions = ch_versions.mix(DECONTAMINATION_STATS.out.versions.first())        
+    }
+    if (params.host || !params.skip_trimmomatic) {
+        ch_versions = ch_versions.mix(PREPROCESS_STATS.out.versions.first()) 
     }
 
     //
@@ -233,9 +234,6 @@ workflow BAITCAPTURE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC_RAW.out.zip.collect{it[1]}.ifEmpty([]))
-    // if (!params.skip_trimmomatic) {
-    //     ch_multiqc_files = ch_multiqc_files.mix(TRIMMOMATIC.out.log.collect{it[1]}.ifEmpty([]))
-    // }
     if (params.host || !params.skip_trimmomatic) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
