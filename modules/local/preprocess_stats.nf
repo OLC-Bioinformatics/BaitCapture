@@ -8,8 +8,7 @@ process PREPROCESS_STATS {
         'biocontainers/seqtk:1.4--he4a0461_1' }"
 
     input:
-    tuple val(meta), path(raw_reads)
-    tuple val(meta), path(preprocessed_reads)
+    tuple val(meta), path(raw_reads), path(preprocessed_reads)
 
     output:
     tuple val(meta), path("*_preprocess_stats.csv"), emit: preprocess_stats
