@@ -148,13 +148,13 @@ workflow BAITCAPTURE {
     //
     if (params.host) {
         if (!params.skip_trimmomatic) {
-            PREPROCESS_STATS(ch_reads, ch_trimmed_reads_decontaminated)
+            PREPROCESS_STATS(ch_reads.join(ch_trimmed_reads_decontaminated))
         } else {
-            PREPROCESS_STATS(ch_reads, ch_reads_decontaminated)
+            PREPROCESS_STATS(ch_reads.join(ch_reads_decontaminated))
         }     
     } else {
         if (!params.skip_trimmomatic) {
-            PREPROCESS_STATS(ch_reads, ch_trimmed_reads)
+            PREPROCESS_STATS(ch_reads.join(ch_trimmed_reads))
         }
     }
     if (params.host || !params.skip_trimmomatic) {
