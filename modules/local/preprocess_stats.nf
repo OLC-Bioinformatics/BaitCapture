@@ -26,18 +26,12 @@ process PREPROCESS_STATS {
     def forward_preprocessed_reads = "${preprocessed_reads[0]}"
     def reverse_preprocessed_reads = "${preprocessed_reads[1]}"
     """
-    pass_reads=`zcat ${forward_preprocessed_reads} | wc -l | awk '{print \$1}'`
-    pass_reads=`expr \${pass_reads} / 2`
-    total_reads=`zcat ${forward_raw_reads} | wc -l | awk '{print \$1}'`
-    total_reads=`expr \${total_reads} / 2`
+    pass_reads=`awk "BEGIN {print \$(seqtk size ${forward_preprocessed_reads} | cut -f 1) + \$(seqtk size ${reverse_preprocessed_reads} | cut -f 1); exit}"`
+    total_reads=`awk "BEGIN {print \$(seqtk size ${forward_raw_reads} | cut -f 1) + \$(seqtk size ${reverse_raw_reads} | cut -f 1); exit}"`
     prop_reads=`awk "BEGIN {print \${pass_reads}/\${total_reads}}"`
 
-    pass_fwd_bases=`seqtk size ${forward_preprocessed_reads} | cut -f 2`
-    pass_rev_bases=`seqtk size ${reverse_preprocessed_reads} | cut -f 2`
-    pass_bases=`expr \${pass_fwd_bases} + \${pass_rev_bases}`
-    total_fwd_bases=`seqtk size ${forward_raw_reads} | cut -f 2`
-    total_rev_bases=`seqtk size ${reverse_raw_reads} | cut -f 2`
-    total_bases=`expr \${total_fwd_bases} + \${total_rev_bases}`
+    pass_bases=`awk "BEGIN {print \$(seqtk size ${forward_preprocessed_reads} | cut -f 2) + \$(seqtk size ${reverse_preprocessed_reads} | cut -f 2); exit}"`
+    total_bases=`awk "BEGIN {print \$(seqtk size ${forward_raw_reads} | cut -f 2) + \$(seqtk size ${reverse_raw_reads} | cut -f 2); exit}"`
     prop_bases=`awk "BEGIN {print \${pass_bases}/\${total_bases}}"`
 
     echo "sample,input_reads,reads_passing_preprocessing,proportion_reads_passing_preprocessing,input_bases,bases_passing_preprocessing,proportion_bases_passing_preprocessing" > ${prefix}_preprocess_stats.csv
