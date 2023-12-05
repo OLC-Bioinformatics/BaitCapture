@@ -147,13 +147,17 @@ workflow BAITCAPTURE {
     // MODULE: PREPROCESS_STATS
     //
     if (params.host) {
+        
         if (!params.skip_trimmomatic) {
+            // Trimmomatic + host decontamination
             PREPROCESS_STATS(ch_reads.join(ch_trimmed_reads_decontaminated))
         } else {
+            // Host decontamination only
             PREPROCESS_STATS(ch_reads.join(ch_reads_decontaminated))
         }     
     } else {
         if (!params.skip_trimmomatic) {
+            // Trimmomatic only
             PREPROCESS_STATS(ch_reads.join(ch_trimmed_reads))
         }
     }
@@ -179,34 +183,45 @@ workflow BAITCAPTURE {
         ch_versions = ch_versions.mix(FASTQC_PREPROCESSED.out.versions.first())
     }
 
-    //
-    // MODULE: BWAMEM2_BUILD
-    //
-    BWAMEM2_BUILD(ch_targets)
-    ch_indexed_targets = BWAMEM2_BUILD.out.index
-    ch_versions = ch_versions.mix(BWAMEM2_BUILD.out.versions.first())
+    /*
+    ========================================================================
+    Align (preprocessed) reads to targets
+    ========================================================================
+    */
 
-    //
-    // MODULE: BWAMEM2_ALIGN
-    //
-    if (!params.skip_trimmomatic) {
-        if (params.host) {
-            BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets.collect(), true)
-            ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
+
+
+    if (params.aligner == 'bwamem2') {
+
+        BWAMEM2_BUILD(ch_targets)
+        ch_indexed_targets = BWAMEM2_BUILD.out.index
+        ch_versions = ch_versions.mix(BWAMEM2_BUILD.out.versions.first())
+
+        if (!params.skip_trimmomatic) {
+            if (params.host) {
+                // Trimmomtic + host decontamination
+                BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets.collect(), true)
+                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
+            } else {
+                // Trimmomtic only
+                BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets.collect(), true)
+                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam            
+            }
         } else {
-            BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets.collect(), true)
-            ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam            
+            if (params.host) {
+                // Host decontamination only
+                BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets.collect(), true)
+                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
+            } else {
+                // No preprocessing
+                BWAMEM2_ALIGN(ch_reads, ch_indexed_targets.collect(), true)
+                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
+            }
         }
-    } else {
-        if (params.host) {
-            BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets.collect(), true)
-            ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
-        } else {
-            BWAMEM2_ALIGN(ch_reads, ch_indexed_targets.collect(), true)
-            ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
-        }
+
+        ch_versions = ch_versions.mix(BWAMEM2_ALIGN.out.versions.first())
+
     }
-    ch_versions = ch_versions.mix(BWAMEM2_ALIGN.out.versions.first())
 
     //
     // MODULE: ALIGNCOV_BWAMEM2

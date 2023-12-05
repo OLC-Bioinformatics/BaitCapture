@@ -62,6 +62,11 @@
             "description": "Parameters to control execution options for the workflow",
             "default": "",
             "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bwamem2",
+                    "description": "Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets."
+                },
                 "extension": {
                     "type": "string",
                     "default": "/*.fastq.gz",
