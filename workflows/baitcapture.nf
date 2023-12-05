@@ -37,6 +37,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
 include { ALIGNCOV as ALIGNCOV_BWAMEM2  } from '../modules/local/aligncov/main'
+include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,9 +53,7 @@ include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { TRIMMOMATIC                   } from '../modules/nf-core/trimmomatic/main'
-include { BWAMEM2_INDEX as BWAMEM2_BUILD } from '../modules/nf-core/bwamem2/index/main'
 include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD } from '../modules/nf-core/bwamem2/index/main'
-include { BWAMEM2_MEM as BWAMEM2_ALIGN  } from '../modules/nf-core/bwamem2/mem/main'
 include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem/main'
 // include { DECONTAMINATION_STATS         } from '../modules/local/decontamination_stats.nf'
 include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats.nf'
@@ -134,52 +133,33 @@ workflow BAITCAPTURE {
     //
     if (params.host) {
         if (!params.skip_trimmomatic) {
+            // Trimmomatic + host decontamination
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
-            ch_trimmed_reads_decontaminated = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
+            ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         } else {
+            // Host decontamination only
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
-            ch_reads_decontaminated = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
+            ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         }
         ch_versions = ch_versions.mix(BWAMEM2_HOST_REMOVAL_ALIGN.out.versions.first())
+    } else {
+        // Trimmomatic only
+        ch_preprocessed_reads = ch_trimmed_reads
     }
 
     //
     // MODULE: PREPROCESS_STATS
     //
-    if (params.host) {
-        
-        if (!params.skip_trimmomatic) {
-            // Trimmomatic + host decontamination
-            PREPROCESS_STATS(ch_reads.join(ch_trimmed_reads_decontaminated))
-        } else {
-            // Host decontamination only
-            PREPROCESS_STATS(ch_reads.join(ch_reads_decontaminated))
-        }     
-    } else {
-        if (!params.skip_trimmomatic) {
-            // Trimmomatic only
-            PREPROCESS_STATS(ch_reads.join(ch_trimmed_reads))
-        }
-    }
     if (params.host || !params.skip_trimmomatic) {
+        PREPROCESS_STATS(ch_reads.join(ch_preprocessed_reads))
         ch_versions = ch_versions.mix(PREPROCESS_STATS.out.versions.first()) 
     }
 
     //
     // MODULE: FASTQC_PREPROCESSED
     //
-    if (params.host) {
-        if (!params.skip_trimmomatic) {
-            FASTQC_PREPROCESSED(ch_trimmed_reads_decontaminated)
-        } else {
-            FASTQC_PREPROCESSED(ch_reads_decontaminated)
-        }
-    } else {
-        if (!params.skip_trimmomatic) {
-            FASTQC_PREPROCESSED(ch_trimmed_reads)
-        }
-    }
     if (params.host || !params.skip_trimmomatic) {
+        FASTQC_PREPROCESSED(ch_preprocessed_reads)
         ch_versions = ch_versions.mix(FASTQC_PREPROCESSED.out.versions.first())
     }
 
@@ -189,44 +169,16 @@ workflow BAITCAPTURE {
     ========================================================================
     */
 
-
-
     if (params.aligner == 'bwamem2') {
-
-        BWAMEM2_BUILD(ch_targets)
-        ch_indexed_targets = BWAMEM2_BUILD.out.index
-        ch_versions = ch_versions.mix(BWAMEM2_BUILD.out.versions.first())
-
-        if (!params.skip_trimmomatic) {
-            if (params.host) {
-                // Trimmomtic + host decontamination
-                BWAMEM2_ALIGN(ch_trimmed_reads_decontaminated, ch_indexed_targets.collect(), true)
-                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
-            } else {
-                // Trimmomtic only
-                BWAMEM2_ALIGN(ch_trimmed_reads, ch_indexed_targets.collect(), true)
-                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam            
-            }
-        } else {
-            if (params.host) {
-                // Host decontamination only
-                BWAMEM2_ALIGN(ch_reads_decontaminated, ch_indexed_targets.collect(), true)
-                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
-            } else {
-                // No preprocessing
-                BWAMEM2_ALIGN(ch_reads, ch_indexed_targets.collect(), true)
-                ch_bwa_sorted_bam = BWAMEM2_ALIGN.out.bam
-            }
-        }
-
-        ch_versions = ch_versions.mix(BWAMEM2_ALIGN.out.versions.first())
-
+        BWAMEM2_ALIGN_READS(ch_targets, ch_preprocessed_reads)
+        ch_sorted_bam = BWAMEM2_ALIGN_READS.out.sorted_bam
+        ch_versions = ch_versions.mix(BWAMEM2_ALIGN_READS.out.versions)
     }
 
     //
     // MODULE: ALIGNCOV_BWAMEM2
     //
-    ALIGNCOV_BWAMEM2(ch_bwa_sorted_bam)
+    ALIGNCOV_BWAMEM2(ch_sorted_bam)
 
     //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS
