@@ -118,8 +118,8 @@ Typical pipeline command:
 
 Input/output options
   --targets                          [string]  Path to FASTA file of gene targets for alignment.
-  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
-                                               infrastructure. 
+  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud
+                                               infrastructure.
   --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
   --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
   --email                            [string]  Email address for completion summary.
@@ -129,8 +129,8 @@ Workflow execution options
   --extension                        [string]  Naming of sequencing files. [default: /*.fastq.gz]
   --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
   --skip_trimmomatic                 [boolean] Indicate whether to skip trimming of raw reads.
-  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 
-                                               MINLEN:36] 
+  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3
+                                               MINLEN:36]
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
@@ -156,7 +156,6 @@ If you would like to contribute to this pipeline, please see the [contributing g
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) initative, including [nf-core/mag](https://github.com/nf-core/mag) and [nf-core/ampliseq](https://github.com/nf-core/ampliseq), and reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
-
 
 > Ewels PA, Peltzer A, Fillinger S, Patel H, Alneberg J, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. The nf-core framework for community-curated bioinformatics pipelines. Nat Biotechnol. 2020 Mar;38(3):276-278. doi: 10.1038/s41587-020-0439-x. PubMed PMID: 32055031.
 
