@@ -11,7 +11,7 @@ workflow BWAMEM2_ALIGN_READS {
 
     take:
     ch_targets
-    ch_preprocessed_reads
+    ch_final_reads
 
     main:
     ch_versions = Channel.empty()
@@ -22,7 +22,7 @@ workflow BWAMEM2_ALIGN_READS {
     ch_versions = ch_versions.mix(BWAMEM2_BUILD.out.versions.first())
 
     // Align (preprocessed) reads to indexed target database
-    BWAMEM2_ALIGN(ch_preprocessed_reads, ch_indexed_targets.collect(), true)
+    BWAMEM2_ALIGN(ch_final_reads, ch_indexed_targets.collect(), true)
     ch_sorted_bam = BWAMEM2_ALIGN.out.bam
     ch_versions = ch_versions.mix(BWAMEM2_ALIGN.out.versions.first())
 

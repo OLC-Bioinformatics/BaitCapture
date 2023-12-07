@@ -36,7 +36,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
-include { ALIGNCOV as ALIGNCOV_BWAMEM2  } from '../modules/local/aligncov/main'
+include { ALIGNCOV                      } from '../modules/local/aligncov/main'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
 
 /*
@@ -131,6 +131,7 @@ workflow BAITCAPTURE {
     //
     // MODULE: BWAMEM2_HOST_REMOVAL_ALIGN
     //
+
     if (params.host) {
         if (!params.skip_trimmomatic) {
             // Trimmomatic + host decontamination
@@ -141,10 +142,9 @@ workflow BAITCAPTURE {
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         }
-        ch_versions = ch_versions.mix(BWAMEM2_HOST_REMOVAL_ALIGN.out.versions.first())
-    } else {
-        // Trimmomatic only
-        ch_preprocessed_reads = ch_trimmed_reads
+    } else if (!params.skip_trimmomatic) {
+            // Trimmomatic only
+            ch_preprocessed_reads = ch_trimmed_reads
     }
 
     //
@@ -169,16 +169,23 @@ workflow BAITCAPTURE {
     ========================================================================
     */
 
+   if (params.host || !params.skip_trimmomatic) {
+        ch_final_reads = ch_preprocessed_reads
+    } else {
+        // No trimming or host decontamination
+        ch_final_reads = ch_reads
+    }
+
     if (params.aligner == 'bwamem2') {
-        BWAMEM2_ALIGN_READS(ch_targets, ch_preprocessed_reads)
+        BWAMEM2_ALIGN_READS(ch_targets, ch_final_reads)
         ch_sorted_bam = BWAMEM2_ALIGN_READS.out.sorted_bam
         ch_versions = ch_versions.mix(BWAMEM2_ALIGN_READS.out.versions)
     }
 
     //
-    // MODULE: ALIGNCOV_BWAMEM2
+    // MODULE: ALIGNCOV
     //
-    ALIGNCOV_BWAMEM2(ch_sorted_bam)
+    ALIGNCOV(ch_sorted_bam)
 
     //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS
