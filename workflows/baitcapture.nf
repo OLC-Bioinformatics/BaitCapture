@@ -38,6 +38,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
 include { ALIGNCOV                      } from '../modules/local/aligncov/main'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
+include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -180,6 +181,10 @@ workflow BAITCAPTURE {
         BWAMEM2_ALIGN_READS(ch_targets, ch_final_reads)
         ch_sorted_bam = BWAMEM2_ALIGN_READS.out.sorted_bam
         ch_versions = ch_versions.mix(BWAMEM2_ALIGN_READS.out.versions)
+    } else if (params.aligner == 'kma') {
+        KMA_ALIGN_READS(ch_targets, ch_final_reads)
+        ch_sorted_bam = KMA_ALIGN_READS.out.sorted_bam
+        ch_versions = ch_versions.mix(KMA_ALIGN_READS.out.versions)
     }
 
     //
@@ -211,6 +216,7 @@ workflow BAITCAPTURE {
     if (params.host || !params.skip_trimmomatic) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
+
     // TODO: Add process outputs for MultiQC input here
 
     MULTIQC (
