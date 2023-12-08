@@ -103,14 +103,13 @@ If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternat
 More usage information can be obtained at any time by running `nextflow run OLC-LOC-Bioinformatics/BaitCapture --help`:
 
 ```
-$ nextflow run OLC-LOC-Bioinformatics/BaitCapture --help
+$ nextflow run . --help
 N E X T F L O W  ~  version 23.04.2
-NOTE: Your local project version looks outdated - a different revision is available in the remote repository [0098df80f4]
-Launching `https://github.com/OLC-LOC-Bioinformatics/BaitCapture` [astonishing_dalembert] DSL2 - revision: 2586d762db [use-bwa-for-host-decontam]
+Launching `./main.nf` [sick_murdock] DSL2 - revision: f078cc2e0b
 
 
 ------------------------------------------------------
-  olc/baitcapture v1.0dev-g2586d76
+  olc/baitcapture v1.0dev
 ------------------------------------------------------
 Typical pipeline command:
 
@@ -126,6 +125,8 @@ Input/output options
   --multiqc_title                    [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
 
 Workflow execution options
+  --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted:
+                                               bwamem2, kma) [default: bwamem2]
   --extension                        [string]  Naming of sequencing files. [default: /*.fastq.gz]
   --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
   --skip_trimmomatic                 [boolean] Indicate whether to skip trimming of raw reads.
@@ -169,13 +170,13 @@ In addition, references of tools and data used in this pipeline are as follows:
 
   > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
 
-- [Bowtie2](https://www.nature.com/articles/nmeth.1923)
-
-  > Langmead, B, Salzberg, S. Fast gapped-read alignment with Bowtie 2. Nat Methods. 2012;9:357-359. doi: 10.1038/nmeth.1923
-
 - [BWA-MEM2](https://ieeexplore.ieee.org/document/8820962)
 
   > Vasimuddin M, Misra S, Li H, Aluru S. Efficient architecture-aware acceleration of BWA-MEM for multicore systems. IEEE Parallel and Distributed Processing Symposium (IPDPS). 2019;19028010. doi: 10.1109/IPDPS.2019.00041
+
+- [KMA](https://bitbucket.org/genomicepidemiology/kma)
+
+  > Clausen PTLC, Aarestrup FM, Lund O. Rapid and precise alignment of raw reads against redundant databases with KMA. BMC Bioinformatics. 2018;19:307. doi: 10.1186/s12859-018-2336-6
 
 - [Trimmomatic](https://academic.oup.com/bioinformatics/article/30/15/2114/2390096)
 

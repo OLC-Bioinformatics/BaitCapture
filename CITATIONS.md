@@ -18,13 +18,13 @@
 
   > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
 
-- [Bowtie2](https://www.nature.com/articles/nmeth.1923)
-
-  > Langmead, B, Salzberg, S. Fast gapped-read alignment with Bowtie 2. Nat Methods. 2012;9:357-359. doi: 10.1038/nmeth.1923
-
 - [BWA-MEM2](https://ieeexplore.ieee.org/document/8820962)
 
   > Vasimuddin M, Misra S, Li H, Aluru S. Efficient architecture-aware acceleration of BWA-MEM for multicore systems. IEEE Parallel and Distributed Processing Symposium (IPDPS). 2019;19028010. doi: 10.1109/IPDPS.2019.00041
+
+- [KMA](https://bitbucket.org/genomicepidemiology/kma)
+
+  > Clausen PTLC, Aarestrup FM, Lund O. Rapid and precise alignment of raw reads against redundant databases with KMA. BMC Bioinformatics. 2018;19:307. doi: 10.1186/s12859-018-2336-6
 
 - [Trimmomatic](https://academic.oup.com/bioinformatics/article/30/15/2114/2390096)
 
