@@ -105,7 +105,7 @@ More usage information can be obtained at any time by running `nextflow run OLC-
 ```
 $ nextflow run . --help
 N E X T F L O W  ~  version 23.04.2
-Launching `./main.nf` [sick_murdock] DSL2 - revision: f078cc2e0b
+Launching `./main.nf` [modest_picasso] DSL2 - revision: f078cc2e0b
 
 
 ------------------------------------------------------
@@ -117,21 +117,21 @@ Typical pipeline command:
 
 Input/output options
   --targets                          [string]  Path to FASTA file of gene targets for alignment.
-  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud
-                                               infrastructure.
+  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
+                                               infrastructure. 
   --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
   --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
   --email                            [string]  Email address for completion summary.
   --multiqc_title                    [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
 
 Workflow execution options
-  --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted:
-                                               bwamem2, kma) [default: bwamem2]
+  --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted: 
+                                               bwamem2, kma, bwa) [default: bwamem2] 
   --extension                        [string]  Naming of sequencing files. [default: /*.fastq.gz]
   --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
   --skip_trimmomatic                 [boolean] Indicate whether to skip trimming of raw reads.
-  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3
-                                               MINLEN:36]
+  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 
+                                               MINLEN:36] 
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
