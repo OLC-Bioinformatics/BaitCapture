@@ -39,6 +39,7 @@ include { PARSE_INPUT                   } from '../subworkflows/local/parse_inpu
 include { ALIGNCOV                      } from '../modules/local/aligncov/main'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
 include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
+include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,6 +186,10 @@ workflow BAITCAPTURE {
         KMA_ALIGN_READS(ch_targets, ch_final_reads)
         ch_sorted_bam = KMA_ALIGN_READS.out.sorted_bam
         ch_versions = ch_versions.mix(KMA_ALIGN_READS.out.versions)
+    } else if (params.aligner == 'bwa') {
+        BWA_ALIGN_READS(ch_targets, ch_final_reads)
+        ch_sorted_bam = BWA_ALIGN_READS.out.sorted_bam
+        ch_versions = ch_versions.mix(BWA_ALIGN_READS.out.versions)
     }
 
     //
