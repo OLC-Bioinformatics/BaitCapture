@@ -202,7 +202,7 @@ workflow BAITCAPTURE {
     //
     // SUBWORKFLOW: BAM_STATS_SAMTOOLS
     //
-    BAM_STATS_SAMTOOLS(ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]), ch_targets)
+    BAM_STATS_SAMTOOLS(ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]), ch_targets.collect())
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
@@ -229,6 +229,9 @@ workflow BAITCAPTURE {
     if (params.host || !params.skip_trimmomatic) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]))
 
     // TODO: Add process outputs for MultiQC input here
 
