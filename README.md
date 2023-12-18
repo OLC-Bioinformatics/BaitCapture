@@ -101,10 +101,12 @@ If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternat
 
 ## Testing the workflow
 
-To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed using:
+To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow:
 
 ```bash
-nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+git clone https://github.com/OLC-LOC-Bioinformatics/BaitCapture
+cd BaitCapture/
+nextflow run . \
   -profile test,<docker/singularity/.../institute> \
   --outdir <OUTDIR>
 ```
@@ -116,6 +118,21 @@ cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-
 ```
 
 The expected output for this is saved under `assets/SRR14739083.stats`.
+
+## Running the workflow on high-performance compute clusters
+
+Nextflow is capable of running several jobs in parallel using job submission managers (e.g. SLURM) that have been configured on high-performance compute (HPC) clusters.
+For your convenience, profiles have been added to simplify running the workflow on commonly used clusters.
+
+### Waffles
+
+To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use the following command:
+
+```bash
+nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+  -profile waffles \
+  --outdir <OUTDIR>
+```
 
 ## Advanced usage
 
