@@ -109,7 +109,12 @@ nextflow run OLC-LOC-Bioinformatics/BaitCapture \
   --outdir <OUTDIR>
 ```
 
-If your `<OUTDIR>` was `test-results`, you could then run the following command to inspect the SAMtools alignment summary statistics for the test sample: `cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-`.
+If your `<OUTDIR>` was `test-results`, you could then run the following command to inspect the SAMtools alignment summary statistics for the test sample:
+
+```bash
+cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-
+```
+
 The expected output for this is saved under `assets/SRR14739083.stats`.
 
 ## Advanced usage
