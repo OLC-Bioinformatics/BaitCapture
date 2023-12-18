@@ -67,7 +67,7 @@ Each row represents a gzipped FASTQ file.
 Now, you can run the pipeline using:
 
 ```bash
-nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+nextflow run OLC-Bioinformatics/BaitCapture \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --targets targets.fa \
@@ -92,7 +92,7 @@ data
 The pipeline can be run using:
 
 ```bash
-nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+nextflow run OLC-Bioinformatics/BaitCapture \
    -profile <docker/singularity/.../institute> \
    --input_folder data/ \
    --targets targets.fa \
@@ -106,7 +106,7 @@ If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternat
 To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow:
 
 ```bash
-git clone https://github.com/OLC-LOC-Bioinformatics/BaitCapture
+git clone https://github.com/OLC-Bioinformatics/BaitCapture
 cd BaitCapture/
 nextflow run . \
   -profile test,<docker/singularity/.../institute> \
@@ -131,14 +131,14 @@ For your convenience, profiles have been added to simplify running the workflow 
 To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use the following command:
 
 ```bash
-nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+nextflow run OLC-Bioinformatics/BaitCapture \
   -profile waffles \
   --outdir <OUTDIR>
 ```
 
 ## Advanced usage
 
-More usage information can be obtained at any time by running `nextflow run OLC-LOC-Bioinformatics/BaitCapture --help`:
+More usage information can be obtained at any time by running `nextflow run OLC-Bioinformatics/BaitCapture --help`:
 
 ```
 $ nextflow run . --help
@@ -182,7 +182,7 @@ If you use olc/baitcapture for your analysis please cite:
   https://doi.org/10.1038/s41587-020-0439-x
 
 * Software dependencies
-  https://github.com/olc/baitcapture/blob/master/CITATIONS.md
+  https://github.com/OLC-Bioinformatics/BaitCapture/blob/main/CITATIONS.md
 ------------------------------------------------------
 ```
 

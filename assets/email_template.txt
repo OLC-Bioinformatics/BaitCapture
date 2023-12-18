@@ -28,4 +28,4 @@ Pipeline Configuration:
 
 --
 olc/baitcapture
-https://github.com/olc/baitcapture
+https://github.com/OLC-Bioinformatics/BaitCapture
