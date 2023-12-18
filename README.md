@@ -30,7 +30,7 @@ The steps of the workflow are:
 3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
 4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), [BWA](https://github.com/lh3/bwa), or [KMA](https://bitbucket.org/genomicepidemiology/kma).
-6. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
+6. Obtain sequence coverage and depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
 7. Obtain further alignment statistics using [SAMtools](https://github.com/samtools/samtools).
 8. Create a summary report with [MultiQC](https://github.com/ewels/MultiQC).
 
@@ -98,6 +98,19 @@ nextflow run OLC-LOC-Bioinformatics/BaitCapture \
 ```
 
 If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
+
+## Testing the workflow
+
+To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed using:
+
+```bash
+nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+  -profile test,<docker/singularity/.../institute> \
+  --outdir <OUTDIR>
+```
+
+If your `<OUTDIR>` was `test-results`, you could then run the following command to inspect the SAMtools alignment summary statistics for the test sample: `cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-`.
+The expected output for this is saved under `assets/SRR14739083.stats`.
 
 ## Advanced usage
 
