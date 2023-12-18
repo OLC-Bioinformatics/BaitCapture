@@ -32,13 +32,12 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-//
-// SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
-//
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
 include { ALIGNCOV                      } from '../modules/local/aligncov/main'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
 include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
+include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
+include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,9 +45,6 @@ include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-//
-// MODULE: Installed directly from nf-core/modules
-//
 include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
 include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
@@ -56,8 +52,8 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpso
 include { TRIMMOMATIC                   } from '../modules/nf-core/trimmomatic/main'
 include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD } from '../modules/nf-core/bwamem2/index/main'
 include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem/main'
-// include { DECONTAMINATION_STATS         } from '../modules/local/decontamination_stats.nf'
-include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats.nf'
+include { BAM_STATS_SAMTOOLS            } from '../subworkflows/nf-core/bam_stats_samtools/main'
+include { SAMTOOLS_INDEX                } from '../modules/nf-core/samtools/index/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,12 +181,29 @@ workflow BAITCAPTURE {
         KMA_ALIGN_READS(ch_targets, ch_final_reads)
         ch_sorted_bam = KMA_ALIGN_READS.out.sorted_bam
         ch_versions = ch_versions.mix(KMA_ALIGN_READS.out.versions)
+    } else if (params.aligner == 'bwa') {
+        BWA_ALIGN_READS(ch_targets, ch_final_reads)
+        ch_sorted_bam = BWA_ALIGN_READS.out.sorted_bam
+        ch_versions = ch_versions.mix(BWA_ALIGN_READS.out.versions)
     }
 
     //
     // MODULE: ALIGNCOV
     //
     ALIGNCOV(ch_sorted_bam)
+
+    //
+    // MODULE: SAMTOOLS_INDEX
+    //
+    SAMTOOLS_INDEX(ch_sorted_bam)
+    ch_sorted_bam_bai = SAMTOOLS_INDEX.out.bai
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
+
+    //
+    // SUBWORKFLOW: BAM_STATS_SAMTOOLS
+    //
+    BAM_STATS_SAMTOOLS(ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]), ch_targets.collect())
+    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS
@@ -216,6 +229,9 @@ workflow BAITCAPTURE {
     if (params.host || !params.skip_trimmomatic) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]))
 
     // TODO: Add process outputs for MultiQC input here
 

@@ -14,6 +14,10 @@
 
   > Brown LP. (2023) AlignCov [Online].
 
+- [BWA](https://arxiv.org/abs/1303.3997)
+
+  > Li, H. Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. arXiv. 2013:1303.3997v2. doi: 10.48550/arXiv.1303.3997
+
 - [BWA-MEM2](https://ieeexplore.ieee.org/document/8820962)
 
   > Vasimuddin M, Misra S, Li H, Aluru S. Efficient architecture-aware acceleration of BWA-MEM for multicore systems. IEEE Parallel and Distributed Processing Symposium (IPDPS). 2019;19028010. doi: 10.1109/IPDPS.2019.00041

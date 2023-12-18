@@ -5,6 +5,8 @@
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
+<p align='center'><img src='assets/baitcapture-banner_v02.png' alt="BaitCapture banner" width="75%"></p>
+
 **BaitCapture** is a bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
 ## Overview
@@ -29,9 +31,10 @@ The steps of the workflow are:
 2. (Optional) Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
 3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
 4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
-5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2) or [KMA](https://bitbucket.org/genomicepidemiology/kma).
-6. Obtain sequence coverage depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
-7. Create a summary report with [MultiQC](https://github.com/ewels/MultiQC).
+5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), [BWA](https://github.com/lh3/bwa), or [KMA](https://bitbucket.org/genomicepidemiology/kma).
+6. Obtain sequence coverage and depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
+7. Obtain further alignment statistics using [SAMtools](https://github.com/samtools/samtools).
+8. Create a summary report with [MultiQC](https://github.com/ewels/MultiQC).
 
 ## Usage
 
@@ -98,6 +101,41 @@ nextflow run OLC-LOC-Bioinformatics/BaitCapture \
 
 If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
 
+## Testing the workflow
+
+To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow:
+
+```bash
+git clone https://github.com/OLC-LOC-Bioinformatics/BaitCapture
+cd BaitCapture/
+nextflow run . \
+  -profile test,<docker/singularity/.../institute> \
+  --outdir <OUTDIR>
+```
+
+If your `<OUTDIR>` was `test-results`, you could then run the following command to inspect the SAMtools alignment summary statistics for the test sample:
+
+```bash
+cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-
+```
+
+The expected output for this is saved under `assets/SRR14739083.stats`.
+
+## Running the workflow on high-performance compute clusters
+
+Nextflow is capable of running several jobs in parallel using job submission managers (e.g. SLURM) that have been configured on high-performance compute (HPC) clusters.
+For your convenience, profiles have been added to simplify running the workflow on commonly used clusters.
+
+### Waffles
+
+To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use the following command:
+
+```bash
+nextflow run OLC-LOC-Bioinformatics/BaitCapture \
+  -profile waffles \
+  --outdir <OUTDIR>
+```
+
 ## Advanced usage
 
 More usage information can be obtained at any time by running `nextflow run OLC-LOC-Bioinformatics/BaitCapture --help`:
@@ -105,7 +143,7 @@ More usage information can be obtained at any time by running `nextflow run OLC-
 ```
 $ nextflow run . --help
 N E X T F L O W  ~  version 23.04.2
-Launching `./main.nf` [sick_murdock] DSL2 - revision: f078cc2e0b
+Launching `./main.nf` [modest_picasso] DSL2 - revision: f078cc2e0b
 
 
 ------------------------------------------------------
@@ -117,21 +155,21 @@ Typical pipeline command:
 
 Input/output options
   --targets                          [string]  Path to FASTA file of gene targets for alignment.
-  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud
-                                               infrastructure.
+  --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
+                                               infrastructure. 
   --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
   --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
   --email                            [string]  Email address for completion summary.
   --multiqc_title                    [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
 
 Workflow execution options
-  --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted:
-                                               bwamem2, kma) [default: bwamem2]
+  --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted: 
+                                               bwamem2, kma, bwa) [default: bwamem2] 
   --extension                        [string]  Naming of sequencing files. [default: /*.fastq.gz]
   --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
   --skip_trimmomatic                 [boolean] Indicate whether to skip trimming of raw reads.
-  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3
-                                               MINLEN:36]
+  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 
+                                               MINLEN:36] 
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
