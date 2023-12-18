@@ -1,2 +1,2 @@
 sample,fastq_1,fastq_2
-SRR14739083,assets/SRR14739083_R1_001.fastq.gz,assets/SRR14739083_R2_001.fastq.gz
+SRR14739083,https://github.com/OLC-LOC-Bioinformatics/BaitCapture/raw/main/assets/SRR14739083_R1_001.fastq.gz,https://github.com/OLC-LOC-Bioinformatics/BaitCapture/raw/main/assets/SRR14739083_R2_001.fastq.gz
