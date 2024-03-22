@@ -1,6 +1,6 @@
 {
     "name": "olc/baitcapture",
-    "homePage": "https://github.com/olc/baitcapture",
+    "homePage": "https://github.com/OLC-Bioinformatics/BaitCapture",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {
