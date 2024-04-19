@@ -38,6 +38,7 @@ include { PARSE_INPUT                   } from '../subworkflows/local/parse_inpu
 include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats'
 include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
 include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
+include { TRIM_READS                    } from '../subworkflows/local/trim_reads'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +53,6 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpso
 include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
 include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
-include { TRIMMOMATIC                   } from '../modules/nf-core/trimmomatic/main'
 include { SAMTOOLS_INDEX                } from '../modules/nf-core/samtools/index/main'
 
 /*
@@ -108,12 +108,12 @@ workflow BAITCAPTURE {
     ch_versions = ch_versions.mix(FASTQC_RAW.out.versions.first())
 
     //
-    // MODULE: TRIMMOMATIC
+    // SUBWORKFLOW: TRIM_READS
     //
     if (!params.skip_trimmomatic) {
-        TRIMMOMATIC(ch_reads)
-        ch_trimmed_reads = TRIMMOMATIC.out.trimmed_reads
-        ch_versions = ch_versions.mix(TRIMMOMATIC.out.versions.first())
+        TRIM_READS(ch_reads)
+        ch_trimmed_reads = TRIM_READS.out.trimmed_reads
+        ch_versions = ch_versions.mix(TRIM_READS.out.versions.first())
     }
 
     //
