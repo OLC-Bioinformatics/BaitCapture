@@ -110,7 +110,7 @@ workflow BAITCAPTURE {
     //
     // SUBWORKFLOW: TRIM_READS
     //
-    if (!params.skip_trimmomatic) {
+    if (!params.skip_trimming) {
         TRIM_READS(ch_reads)
         ch_trimmed_reads = TRIM_READS.out.trimmed_reads
         ch_versions = ch_versions.mix(TRIM_READS.out.versions.first())
@@ -130,7 +130,7 @@ workflow BAITCAPTURE {
     //
 
     if (params.host) {
-        if (!params.skip_trimmomatic) {
+        if (!params.skip_trimming) {
             // Trimmomatic + host decontamination
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
@@ -139,7 +139,7 @@ workflow BAITCAPTURE {
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
         }
-    } else if (!params.skip_trimmomatic) {
+    } else if (!params.skip_trimming) {
             // Trimmomatic only
             ch_preprocessed_reads = ch_trimmed_reads
     }
@@ -147,7 +147,7 @@ workflow BAITCAPTURE {
     //
     // MODULE: PREPROCESS_STATS
     //
-    if (params.host || !params.skip_trimmomatic) {
+    if (params.host || !params.skip_trimming) {
         PREPROCESS_STATS(ch_reads.join(ch_preprocessed_reads))
         ch_versions = ch_versions.mix(PREPROCESS_STATS.out.versions.first()) 
     }
@@ -155,7 +155,7 @@ workflow BAITCAPTURE {
     //
     // MODULE: FASTQC_PREPROCESSED
     //
-    if (params.host || !params.skip_trimmomatic) {
+    if (params.host || !params.skip_trimming) {
         FASTQC_PREPROCESSED(ch_preprocessed_reads)
         ch_versions = ch_versions.mix(FASTQC_PREPROCESSED.out.versions.first())
     }
@@ -166,7 +166,7 @@ workflow BAITCAPTURE {
     ========================================================================
     */
 
-   if (params.host || !params.skip_trimmomatic) {
+   if (params.host || !params.skip_trimming) {
         ch_final_reads = ch_preprocessed_reads
     } else {
         // No trimming or host decontamination
@@ -226,8 +226,11 @@ workflow BAITCAPTURE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC_RAW.out.zip.collect{it[1]}.ifEmpty([]))
-    if (params.host || !params.skip_trimmomatic) {
+    if (params.host || !params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
+    }
+    if (!params.use_trimmomatic && !params.skip_trimming) {
+        ch_multiqc_files = ch_multiqc_files.mix(TRIM_READS.out.json.collect{it[1]}.ifEmpty([]))
     }
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))

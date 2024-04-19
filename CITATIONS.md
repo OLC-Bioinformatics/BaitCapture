@@ -22,6 +22,10 @@
 
   > Vasimuddin M, Misra S, Li H, Aluru S. Efficient architecture-aware acceleration of BWA-MEM for multicore systems. IEEE Parallel and Distributed Processing Symposium (IPDPS). 2019;19028010. doi: 10.1109/IPDPS.2019.00041
 
+- [fastp](https://onlinelibrary.wiley.com/doi/10.1002/imt2.107)
+
+  > Chen, S. Ultrafast one-pass FASTQ data preprocessing, quality control, and deduplication using fastp. iMeta. 2023;2:e107. doi: 10.1002/imt2.107
+
 - [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
   > Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
