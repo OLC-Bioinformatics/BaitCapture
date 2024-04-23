@@ -12,13 +12,8 @@ class WorkflowBaitcapture {
     //
     public static void initialise(params, log) {
 
-
         if (!params.targets) {
-            Nextflow.error "ERROR: FASTA file of gene targets not specified with e.g. '--targets targets.fa' or via a detectable config file."
-        }
-
-        if (!params.use_trimmomatic && !params.skip_trimming && params.trimmomatic_args) {
-            Nextflow.error("ERROR: '--trimmomatic_args' cannot be specified without '--use_trimmomatic'.")
+            Nextflow.error "Missing parameter: FASTA file of gene targets not specified with e.g. '--targets targets.fa' or via a detectable config file."
         }
 
     }

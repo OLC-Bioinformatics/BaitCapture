@@ -86,18 +86,6 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
                     "description": "Indicate whether to skip trimming of raw reads."
-                },
-                "trimmomatic_args": {
-                    "type": "string",
-                    "default": "ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 MINLEN:36",
-                    "description": "Adjust Trimmomatic parameters, if --use_trimmomatic is provided.",
-                    "fa_icon": "fas fa-cut"
-                },
-                "use_trimmomatic": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-toggle-on",
-                    "default": false,
-                    "description": "Use Trimmomatic instead of FASTP for read trimming."
                 }
             }
         },

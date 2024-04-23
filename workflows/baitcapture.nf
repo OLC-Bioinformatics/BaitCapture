@@ -229,7 +229,7 @@ workflow BAITCAPTURE {
     if (params.host || !params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
-    if (!params.use_trimmomatic && !params.skip_trimming) {
+    if (!params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(TRIM_READS.out.json.collect{it[1]}.ifEmpty([]))
     }
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
