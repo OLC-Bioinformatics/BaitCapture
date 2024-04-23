@@ -28,7 +28,7 @@ The workflow also outputs a table of read depths for each base pair within each 
 The steps of the workflow are:
 
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
-2. (Optional) Trim the raw sequence reads using [fastp](https://github.com/OpenGene/fastp) or [Trimmomatic](https://github.com/usadellab/Trimmomatic).
+2. (Optional) Trim the raw sequence reads using [fastp](https://github.com/OpenGene/fastp).
 3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
 4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), [BWA](https://github.com/lh3/bwa), or [KMA](https://bitbucket.org/genomicepidemiology/kma).
@@ -168,9 +168,6 @@ Workflow execution options
   --extension                        [string]  Naming of sequencing files. [default: /*_R{1,2}_001.fastq.gz]
   --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
   --skip_trimming                    [boolean] Indicate whether to skip trimming of raw reads.
-  --trimmomatic_args                 [string]  Adjust Trimmomatic parameters, if --use_trimmomatic is provided. [default: 
-                                               ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 MINLEN:36] 
-  --use_trimmomatic                  [boolean] Use Trimmomatic instead of FASTP for read trimming. [default: false]
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.

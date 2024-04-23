@@ -42,11 +42,6 @@
 
   > Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R, 1000 Genome Project Data Processing Subgroup. The Sequence Alignment/Map format and SAMtools. Bioinformatics. 2009;25(16):2078–2079. doi: 10.1093/bioinformatics/btp352
 
-- [Trimmomatic](https://academic.oup.com/bioinformatics/article/30/15/2114/2390096)
-
-  > Bolger AM, Lohse M, Usadel B. Trimmomatic: a flexible trimmer for Illumina sequence data. Bioinformatics. 2014;30(15):2114-2120. doi: 10.1093/bioinformatics/btu170
-
-
 ## Software packaging/containerisation tools
 
 - [Anaconda](https://anaconda.com)
