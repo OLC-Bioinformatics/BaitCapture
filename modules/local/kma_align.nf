@@ -13,6 +13,7 @@ process KMA_ALIGN {
 
     output:
     tuple val(meta), path("*.sam"), emit: sam
+    tuple val(meta), path("*.res"), emit: res
     path "versions.yml"           , emit: versions
 
     when:
