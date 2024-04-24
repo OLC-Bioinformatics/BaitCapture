@@ -52,6 +52,7 @@ include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD } from '../modules/nf-core
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
 include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
+include { MOSDEPTH                      } from '../modules/nf-core/mosdepth/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { SAMTOOLS_INDEX                } from '../modules/nf-core/samtools/index/main'
 
@@ -206,6 +207,13 @@ workflow BAITCAPTURE {
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
+    // MODULE: MOSDEPTH
+    //
+    ch_mosdepth_in = ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]).map{ meta, bam, bai -> [meta, bam, bai, []] }
+    MOSDEPTH(ch_mosdepth_in, ch_targets.collect())
+    ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
+
+    //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS
     //
     CUSTOM_DUMPSOFTWAREVERSIONS (
@@ -226,15 +234,18 @@ workflow BAITCAPTURE {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC_RAW.out.zip.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.global_txt.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(MOSDEPTH.out.summary_txt.collect{it[1]}.ifEmpty([]))
     if (params.host || !params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
     if (!params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(TRIM_READS.out.json.collect{it[1]}.ifEmpty([]))
     }
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]))
+    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
+    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))
+    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]))
+
 
     // TODO: Add process outputs for MultiQC input here
 
