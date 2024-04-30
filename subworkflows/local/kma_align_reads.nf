@@ -19,6 +19,7 @@ workflow KMA_ALIGN_READS {
     // Align final reads to indexed target database
     KMA_ALIGN(ch_final_reads, ch_indexed_targets.collect())
     ch_sam = KMA_ALIGN.out.sam
+    ch_res = KMA_ALIGN.out.res
     ch_versions = ch_versions.mix(KMA_ALIGN.out.versions.first())
 
     // Convert SAM to sorted BAM
@@ -28,6 +29,7 @@ workflow KMA_ALIGN_READS {
 
     emit:
     sorted_bam = ch_sorted_bam
+    res = ch_res
     versions = ch_versions
 
 }

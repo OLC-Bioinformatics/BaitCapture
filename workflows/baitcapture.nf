@@ -34,6 +34,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 
 include { ALIGNCOV                      } from '../modules/local/aligncov/main'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
+include { MERGE_MAPPING_RESULTS         } from '../modules/local/merge_mapping_results'
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
 include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats'
 include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
@@ -181,6 +182,7 @@ workflow BAITCAPTURE {
     } else if (params.aligner == 'kma') {
         KMA_ALIGN_READS(ch_targets, ch_final_reads)
         ch_sorted_bam = KMA_ALIGN_READS.out.sorted_bam
+        ch_kma_res = KMA_ALIGN_READS.out.res
         ch_versions = ch_versions.mix(KMA_ALIGN_READS.out.versions)
     } else if (params.aligner == 'bwa') {
         BWA_ALIGN_READS(ch_targets, ch_final_reads)
@@ -192,6 +194,7 @@ workflow BAITCAPTURE {
     // MODULE: ALIGNCOV
     //
     ALIGNCOV(ch_sorted_bam)
+    ch_aligncov_stats = ALIGNCOV.out.stats
 
     //
     // MODULE: SAMTOOLS_INDEX
@@ -204,6 +207,7 @@ workflow BAITCAPTURE {
     // SUBWORKFLOW: BAM_STATS_SAMTOOLS
     //
     BAM_STATS_SAMTOOLS(ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]), ch_targets.collect())
+    ch_idxstats = BAM_STATS_SAMTOOLS.out.idxstats
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
@@ -211,7 +215,18 @@ workflow BAITCAPTURE {
     //
     ch_mosdepth_in = ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]).map{ meta, bam, bai -> [meta, bam, bai, []] }
     MOSDEPTH(ch_mosdepth_in, ch_targets.collect())
+    ch_mosdepth_summary = MOSDEPTH.out.summary_txt
     ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
+
+    //
+    // MODULE: MERGE_MAPPING_RESULTS
+    //
+    if (params.aligner == 'kma') {
+        MERGE_MAPPING_RESULTS(ch_aligncov_stats, ch_idxstats, ch_kma_res)
+    } else {
+        MERGE_MAPPING_RESULTS(ch_aligncov_stats, ch_idxstats, ch_aligncov_stats.map{ meta, kma_res -> [meta, []] })
+    }
+    ch_versions = ch_versions.mix(MERGE_MAPPING_RESULTS.out.versions.first())
 
     //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS
