@@ -32,6 +32,7 @@ process MERGE_MAPPING_RESULTS {
         ${args}
 
     cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
         r-base: \$(R --version | head -n 1 | grep -Eo '[0-9.]+ ')
         r-readr: \$(grep 'readr' merged-results/package-versions.txt | awk '{print \$3}')
         r-dplyr: \$(grep 'dplyr' merged-results/package-versions.txt | awk '{print \$3}')
