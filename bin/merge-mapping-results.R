@@ -227,7 +227,7 @@ if (report_all_targets == FALSE) {
 # Create presence-absence matrices based upon thresholds
 #-------------------------------------------------------------------------------
 
-if (!is.null(kma_res_file)) {
+if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
   presence_absence = merged |> 
     mutate(presence_absence = if_else(
       len_cov >= len_cov_threshold &
