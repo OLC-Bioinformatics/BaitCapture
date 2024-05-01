@@ -55,7 +55,7 @@ option_list = list(
     c("-p", "--output_prefix"),
     type = "character",
     default = NULL,
-    help = "A prefix to add to the merged results file",
+    help = "A prefix to add to the output file names and as a column 'sampleid'",
     metavar = "string"
   ),  
   # Adjustable reporting thresholds
@@ -123,7 +123,7 @@ option_list = list(
 #   args = c(
 #     "--aligncov=results/aligncov/kma/Chicken-10-S1-sub_stats.tsv",
 #     "--idxstats=results/samtools_stats/kma/Chicken-10-S1-sub.idxstats",
-#     "--kma=results/kma/Chicken-10-S1-sub.res",
+#     # "--kma=results/kma/Chicken-10-S1-sub.res",
 #     "--outdir=merged-results/",
 #     "--output_prefix=Chicken-10-S1-sub",
 #     "--len_cov_threshold=0",
@@ -131,7 +131,7 @@ option_list = list(
 #     "--fold_cov_threshold=0.9",
 #     "--mapped_reads_threshold=2",
 #     "--percent_identity_threshold=0.9",
-#     "--report_all"
+#     "--report_all",
 #     "--force"
 #     )
 #   )
@@ -169,11 +169,13 @@ output_prefix = opt$output_prefix
 report_all_targets = opt$report_all
 force_overwrite = opt$force
 
-# Get output file name
+# Get output file names
 if (is.null(output_prefix)) {
-  output_file = file.path(outdir, "mapstats.tsv")
+  merged_out = file.path(outdir, "mapstats.tsv")
+  presence_absence_out = file.path(outdir, "presence_absence.tsv")
 } else {
-  output_file = file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = "."))
+  merged_out = file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = "."))
+  presence_absence_out = file.path(outdir, paste(output_prefix, "presence_absence.tsv", sep = "."))
 }
 
 #-------------------------------------------------------------------------------
@@ -222,7 +224,51 @@ if (report_all_targets == FALSE) {
 }
 
 #-------------------------------------------------------------------------------
-# Save merged results and package versions
+# Create presence-absence matrices based upon thresholds
+#-------------------------------------------------------------------------------
+
+if (!is.null(kma_res_file)) {
+  presence_absence = merged |> 
+    mutate(presence_absence = if_else(
+      len_cov >= len_cov_threshold &
+        prop_cov >= prop_cov_threshold &
+        fold_cov >= fold_cov_threshold &
+        mapped_reads >= mapped_reads_threshold &
+        kma_template_identity >= percent_identity_threshold,
+      1,
+      0)) |> 
+    select(target, presence_absence) |> 
+    pivot_wider(names_from = target,
+                values_from = presence_absence)
+} else {
+  presence_absence = merged |> 
+    mutate(presence_absence = if_else(
+      len_cov >= len_cov_threshold &
+        prop_cov >= prop_cov_threshold &
+        fold_cov >= fold_cov_threshold &
+        mapped_reads >= mapped_reads_threshold,
+      1,
+      0)) |> 
+    select(target, presence_absence) |> 
+    pivot_wider(names_from = target,
+                values_from = presence_absence)
+}
+
+#-------------------------------------------------------------------------------
+# Add 'sampleid' column if --output_prefix is provided
+#-------------------------------------------------------------------------------
+
+if (!is.null(output_prefix)) {
+  merged = merged |> 
+    mutate(sampleid = output_prefix) |> 
+    relocate(sampleid, .before = everything())
+  presence_absence = presence_absence |> 
+    mutate(sampleid = output_prefix) |> 
+    relocate(sampleid, .before = everything())
+}
+
+#-------------------------------------------------------------------------------
+# Save merged results, presence-absence, and package versions
 #-------------------------------------------------------------------------------
 
 # Collect package versions
@@ -233,26 +279,38 @@ package_versions <- c(
   "optparse" = packageVersion("optparse")
 )
 
-if (force_overwrite == FALSE && file.exists(output_file)) {
-  # Raise an error if the output file already exists and `--force` isn't used
+if (force_overwrite == FALSE && file.exists(merged_out)) {
+  # Raise an error if the merged results file already exists and `--force` isn't used
   stop(
     paste(
       "Output file",
-      output_file,
+      merged_out,
       "already exists. Either remove this file or re-run script with the",
       "`--force` argument to overwrite."
     )
   )
-} else {
-  # Create output directory
+} else if (force_overwrite == FALSE && file.exists(presence_absence_out)) {
+  # Raise an error if the presence-absence matrix file already exists and `--force` isn't used
+    stop(
+      paste(
+        "Output file",
+        presence_absence_out,
+        "already exists. Either remove this file or re-run script with the",
+        "`--force` argument to overwrite."
+        )
+      )
+  } else {
+  # Create output directory if it doesn't already exist
   if (!dir.exists(outdir)) {
     dir.create(outdir)
   }
   # Write merged results
-  merged |> 
-    write_tsv(output_file)
+  merged |>
+    write_tsv(merged_out)
+  # Write presence_absence matrix
+  presence_absence |> 
+    write_tsv(presence_absence_out)  
   # Write package versions
   writeLines(paste(names(package_versions), package_versions, sep = " = "), 
              file.path(outdir, "package-versions.txt"))
-  
 }
