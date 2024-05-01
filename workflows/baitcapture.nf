@@ -222,10 +222,11 @@ workflow BAITCAPTURE {
     // MODULE: MERGE_MAPPING_RESULTS
     //
     if (params.aligner == 'kma') {
-        MERGE_MAPPING_RESULTS(ch_aligncov_stats, ch_idxstats, ch_kma_res)
+        ch_merge_mapping_results_in = ch_aligncov_stats.combine(ch_idxstats, by: [0]).combine(ch_kma_res, by: [0])
     } else {
-        MERGE_MAPPING_RESULTS(ch_aligncov_stats, ch_idxstats, ch_aligncov_stats.map{ meta, kma_res -> [meta, []] })
+        ch_merge_mapping_results_in = ch_aligncov_stats.combine(ch_idxstats, by: [0]).combine(ch_aligncov_stats.map{ meta, kma_res -> [meta, []] }, by: [0])
     }
+    MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in)
     ch_versions = ch_versions.mix(MERGE_MAPPING_RESULTS.out.versions.first())
 
     //
