@@ -56,7 +56,7 @@
                 }
             }
         },
-        "new_group_1": {
+        "worklow_execution_options": {
             "title": "Workflow execution options",
             "type": "object",
             "description": "Parameters to control execution options for the workflow",
@@ -64,7 +64,7 @@
             "properties": {
                 "aligner": {
                     "type": "string",
-                    "default": "bwamem2",
+                    "default": "kma",
                     "description": "Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets).",
                     "enum": ["bwamem2", "kma", "bwa"]
                 },
@@ -86,6 +86,50 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
                     "description": "Indicate whether to skip trimming of raw reads."
+                }
+            }
+        },
+        "target_detection_thresholds": {
+            "title": "Target detection thresholds",
+            "type": "object",
+            "description": "Set thresholds for determining positive and negative target detections",
+            "default": "",
+            "properties": {
+                "fold_cov_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "minimum": 0,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum fold-coverage of a target that must be achieved to call a positive detection."
+                },
+                "len_cov_threshold": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum length (in bp) that a target must be covered by to call a positive detection."
+                },
+                "mapped_reads_threshold": {
+                    "type": "integer",
+                    "default": 2,
+                    "minimum": 0,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum number of reads that must be mapped to a target to call a positive detection."
+                },
+                "prop_cov_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "minimum": 0,
+                    "maximum": 1,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum percentage of length (in bp) that a target must be covered by to call a positive detection."
+                },
+                "pident_threshold": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum percentage identity match to a target that must be achieved to call a positive detection (only available for `--aligner kma`)."
                 }
             }
         },
@@ -289,7 +333,10 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/definitions/new_group_1"
+            "$ref": "#/definitions/worklow_execution_options"
+        },
+        {
+            "$ref": "#/definitions/target_detection_thresholds"
         },
         {
             "$ref": "#/definitions/institutional_config_options"
