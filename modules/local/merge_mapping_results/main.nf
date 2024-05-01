@@ -34,10 +34,10 @@ process MERGE_MAPPING_RESULTS {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         r-base: \$(R --version | head -n 1 | grep -Eo '[0-9.]+ ')
-        r-readr: \$(grep 'readr' merged-results/package-versions.txt | awk '{print \$3}')
-        r-dplyr: \$(grep 'dplyr' merged-results/package-versions.txt | awk '{print \$3}')
-        r-tidyr: \$(grep 'tidyr' merged-results/package-versions.txt | awk '{print \$3}')
-        r-optparse: \$(grep 'optparse' merged-results/package-versions.txt | awk '{print \$3}')
+        r-readr: \$(grep 'readr' package-versions.txt | awk '{print \$3}')
+        r-dplyr: \$(grep 'dplyr' package-versions.txt | awk '{print \$3}')
+        r-tidyr: \$(grep 'tidyr' package-versions.txt | awk '{print \$3}')
+        r-optparse: \$(grep 'optparse' package-versions.txt | awk '{print \$3}')
     END_VERSIONS
     """
 }
