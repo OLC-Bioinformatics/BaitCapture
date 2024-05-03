@@ -1,10 +1,10 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/olc/baitcapture/master/nextflow_schema.json",
     "title": "olc/baitcapture pipeline parameters",
     "description": "A Nextflow workflow for processing data obtained from targeted resistome bait-capture sequencing",
     "type": "object",
-    "definitions": {
+    "defs": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -330,22 +330,22 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/defs/input_output_options"
         },
         {
-            "$ref": "#/definitions/worklow_execution_options"
+            "$ref": "#/defs/worklow_execution_options"
         },
         {
-            "$ref": "#/definitions/target_detection_thresholds"
+            "$ref": "#/defs/target_detection_thresholds"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/defs/institutional_config_options"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/defs/max_job_request_options"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/defs/generic_options"
         }
     ]
 }

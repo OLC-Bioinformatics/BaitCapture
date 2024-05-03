@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { fromSamplesheet; paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
+include { samplesheetToList; paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-schema'
 
 def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
 def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
@@ -73,7 +73,7 @@ workflow BAITCAPTURE {
     if (params.input) {
             // Argument is the name of the parameter which specifies the samplesheet, i.e. params.input = 'input'
             // [[id:SRR14739083], [s3://sra-pub-src-5/SRR14739083/HI.4968.007.UDI0015_i7---UDI0015_i5.D9_SP3-0_mock_R1.fastq.gz.1, s3://sra-pub-src-5/SRR14739083/HI.4968.007.UDI0015_i7---UDI0015_i5.D9_SP3-0_mock_R2.fastq.gz.1]]
-            ch_reads = Channel.fromSamplesheet('input').map{
+            ch_reads = Channel.fromList(samplesheetToList(params.input, "assets/schema_input.json")).map{
                 meta, fastq_1, fastq_2 ->
                 def reads = [fastq_1, fastq_2]
                 return [meta, reads]
