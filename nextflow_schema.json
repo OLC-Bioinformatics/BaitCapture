@@ -42,6 +42,16 @@
                     "description": "Path to folder containing paired-end gzipped FASTQ files.",
                     "help_text": "Path to folder containing paired-end compressed FASTQ files.\n\nExample for input data organization for two samples:\n\n```bash\ndata\n  \u251c\u2500sample1_1_L001_R1_001.fastq.gz\n  \u251c\u2500sample1_1_L001_R2_001.fastq.gz\n  \u251c\u2500sample2_1_L001_R1_001.fastq.gz\n  \u2514\u2500sample2_1_L001_R2_001.fastq.gz\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The folder must contain gzip compressed demultiplexed fastq files. If the file names do not follow the default (`\"/*_R{1,2}_001.fastq.gz\"`), please check `--extension`.\n3. Sample identifiers are extracted from file names, i.e. the string before the first underscore `_`, these must be unique\n4. If your data is scattered, produce a sample sheet."
                 },
+                "target_metadata": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "description": "Path to comma-separated file containing information about the metadata for targets used in the experiment.",
+                    "help_text": "Use this parameter to optionally specify the location of a target metadata file. It has to be a comma-separated file with at least 2 columns, and a header row.",
+                    "fa_icon": "fas fa-file-csv"
+                },
                 "email": {
                     "type": "string",
                     "description": "Email address for completion summary.",

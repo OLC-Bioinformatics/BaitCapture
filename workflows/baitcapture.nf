@@ -40,6 +40,7 @@ include { PREPROCESS_STATS              } from '../modules/local/preprocess_stat
 include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
 include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
 include { TRIM_READS                    } from '../subworkflows/local/trim_reads'
+include { VALIDATE_TARGET_METADATA      } from '../modules/local/validate_target_metadata'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -101,6 +102,12 @@ workflow BAITCAPTURE {
             meta.id = 'host'
             [meta, it]
         }
+    }
+
+    if (params.target_metadata) {
+        ch_target_metadata = Channel.fromPath(params.target_metadata, checkIfExists: true)
+        VALIDATE_TARGET_METADATA(ch_targets, ch_target_metadata)
+        ch_versions = ch_versions.mix(VALIDATE_TARGET_METADATA.out.versions.first())
     }
 
     //
