@@ -40,7 +40,7 @@ process KMA_ALIGN {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        kma: \$(echo \$(kma -v))
+        kma: \$(echo \$(kma -v) | sed 's/KMA-//')
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
     END_VERSIONS
     """
