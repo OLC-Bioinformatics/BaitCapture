@@ -2,10 +2,10 @@ process KMA_INDEX {
     tag "$fasta"
     label 'process_single'
 
-    conda "bioconda::kma=1.4.9"
+    conda "bioconda::kma=1.4.14,bioconda::samtools=1.20"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/kma:1.4.9--he4a0461_2' :
-        'biocontainers/kma:1.4.9--he4a0461_2' }"
+        'https://depot.galaxyproject.org/singularity/mulled-v2-4ddce7507400eb398d61467a4d4702dad2402183:338e3d4c5936de29a9734afd7b7ed69281705b1a-0' :
+        'biocontainers/mulled-v2-4ddce7507400eb398d61467a4d4702dad2402183:338e3d4c5936de29a9734afd7b7ed69281705b1a-0' }"
 
     input:
     tuple val(meta), path(fasta)
