@@ -246,7 +246,8 @@ if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
         fold_cov >= fold_cov_threshold &
         mapped_reads >= mapped_reads_threshold,
       1,
-      0))
+      0)) |> 
+    select(target, presence_absence)
 }
 
 #-------------------------------------------------------------------------------
