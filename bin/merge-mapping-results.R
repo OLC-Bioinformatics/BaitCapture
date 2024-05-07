@@ -237,9 +237,7 @@ if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
         kma_template_identity >= percent_identity_threshold,
       1,
       0)) |> 
-    select(target, presence_absence) |> 
-    pivot_wider(names_from = target,
-                values_from = presence_absence)
+    select(target, presence_absence)
 } else {
   presence_absence = merged |> 
     mutate(presence_absence = if_else(
@@ -248,10 +246,7 @@ if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
         fold_cov >= fold_cov_threshold &
         mapped_reads >= mapped_reads_threshold,
       1,
-      0)) |> 
-    select(target, presence_absence) |> 
-    pivot_wider(names_from = target,
-                values_from = presence_absence)
+      0))
 }
 
 #-------------------------------------------------------------------------------
@@ -304,10 +299,10 @@ if (force_overwrite == FALSE && file.exists(merged_out)) {
   if (!dir.exists(outdir)) {
     dir.create(outdir)
   }
-  # Write merged results
+  # Write merged results table
   merged |>
     write_tsv(merged_out)
-  # Write presence_absence matrix
+  # Write presence-absence table
   presence_absence |> 
     write_tsv(presence_absence_out)  
   # Write package versions
