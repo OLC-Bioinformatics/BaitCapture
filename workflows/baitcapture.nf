@@ -131,7 +131,7 @@ workflow BAITCAPTURE {
             FASTP(ch_reads, [], [], [])
             ch_trimmed_reads = FASTP.out.reads
         }
-        ch_versions = ch_versions.mix(TRIM_READS.out.versions.first())
+        ch_versions = ch_versions.mix(FASTP.out.versions.first())
     }
 
     //
