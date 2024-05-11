@@ -11,19 +11,10 @@
 
 ## Overview
 
-BaitCapture is an end-to-end bioinformatics workflow used to obtain coverage information for paired-end Illumina sequence reads against a database of target sequences.
-The output is a tab-separated table of alignment coverages against each gene target for each sample.
-For example:
-
-```
-target	seqlen	depth	len_cov	prop_cov	fold_cov
-1__dfrA32__NG_047729.1__1	674	0	0	0	0
-2__aac6__NG_052380.1__1	752	0	0	0	0
-2__aac6__NG_052221.1__2	755	1860	157	0.20794701986755	2.4635761589404
-2__aac6__NG_052259.1__3	755	3550	414	0.548344370860927	4.70198675496689
-```
-
-The workflow also outputs a table of read depths for each base pair within each gene target for a more granular view of coverage information.
+BaitCapture is an end-to-end bioinformatics workflow used to summarize alignment statistics for paired-end Illumina sequence reads against a database of target sequences.
+There are two outputs:
+- A tab-separated table of alignment statistics against each gene target for each sample.
+- A tab-separated presence-absence matrix, based upon alignment statistic thresholds determined by the user.
 
 The steps of the workflow are:
 
@@ -143,7 +134,7 @@ More usage information can be obtained at any time by running `nextflow run OLC-
 ```
 $ nextflow run . --help
 N E X T F L O W  ~  version 23.10.1
-Launching `./main.nf` [trusting_knuth] DSL2 - revision: f078cc2e0b
+Launching `./main.nf` [astonishing_lovelace] DSL2 - revision: 84af6b8cef
 
 
 ------------------------------------------------------
@@ -151,28 +142,41 @@ Launching `./main.nf` [trusting_knuth] DSL2 - revision: f078cc2e0b
 ------------------------------------------------------
 Typical pipeline command:
 
-  nextflow run olc/baitcapture --input samplesheet.csv --targets targets.fa -profile docker
+  nextflow run olc/baitcapture --input samplesheet.csv --targets targets.fa --outdir results/ -profile singularity
 
 Input/output options
+  --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
+  --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
+  --extension                        [string]  Naming of sequencing files. [default: /*_R{1,2}_001.fastq.gz]
   --targets                          [string]  Path to FASTA file of gene targets for alignment.
   --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
                                                infrastructure. 
-  --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
-  --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
+  --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
+  --adapters                         [string]  Path to FASTA file of adapter sequences to use for adapter removal with FASTP.
+  --target_metadata                  [string]  Path to comma-separated file containing information about the metadata for targets used in the 
+                                               experiment. 
   --email                            [string]  Email address for completion summary.
   --multiqc_title                    [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
 
 Workflow execution options
   --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted: 
-                                               bwamem2, kma, bwa) [default: bwamem2] 
-  --extension                        [string]  Naming of sequencing files. [default: /*_R{1,2}_001.fastq.gz]
-  --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
+                                               bwamem2, kma, bwa) [default: kma] 
   --skip_trimming                    [boolean] Indicate whether to skip trimming of raw reads.
+  --report_all                       [boolean] Report undetected targets in merged results files.
+
+Target detection thresholds
+  --fold_cov_threshold               [number]  The minimum fold-coverage of a target that must be achieved to call a positive detection. [default: 0.9]
+  --len_cov_threshold                [integer] The minimum length (in bp) that a target must be covered by to call a positive detection. [default: 0]
+  --mapped_reads_threshold           [integer] The minimum number of reads that must be mapped to a target to call a positive detection. [default: 2]
+  --prop_cov_threshold               [number]  The minimum percentage of length (in bp) that a target must be covered by to call a positive detection. 
+                                               [default: 0.9] 
+  --pident_threshold                 [number]  The minimum percentage identity match to a target that must be achieved to call a positive detection (only 
+                                               available for `--aligner kma`). 
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
 
- !! Hiding 23 params, use --validationShowHiddenParams to show them !!
+ !! Hiding 23 params, use the 'validation.showHiddenParams' config value to show them !!
 ------------------------------------------------------
 If you use olc/baitcapture for your analysis please cite:
 

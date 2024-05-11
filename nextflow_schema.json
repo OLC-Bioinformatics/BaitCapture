@@ -12,18 +12,6 @@
             "description": "Define where the pipeline should find input data and save output data.",
             "required": ["targets", "outdir"],
             "properties": {
-                "targets": {
-                    "type": "string",
-                    "fa_icon": "fas fa-bullseye",
-                    "format": "file-path",
-                    "description": "Path to FASTA file of gene targets for alignment."
-                },
-                "outdir": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
-                    "fa_icon": "fas fa-folder-open"
-                },
                 "input": {
                     "type": "string",
                     "format": "file-path",
@@ -49,10 +37,28 @@
                     "description": "Naming of sequencing files.",
                     "help_text": "Indicates the naming of sequencing files (default: `\"/*_R{1,2}_001.fastq.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required.\n2. The star (`*`) is the required wildcard for sample names.\n3. The pattern must be enclosed in quotes."
                 },
+                "targets": {
+                    "type": "string",
+                    "fa_icon": "fas fa-bullseye",
+                    "format": "file-path",
+                    "description": "Path to FASTA file of gene targets for alignment."
+                },
+                "outdir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+                    "fa_icon": "fas fa-folder-open"
+                },
                 "host": {
                     "type": "string",
                     "fa_icon": "fas fa-dna",
                     "description": "Path to FASTA file of host genome to use for host DNA removal (decontamination).",
+                    "format": "file-path",
+                    "mimetype": "text/csv"
+                },
+                "adapters": {
+                    "type": "string",
+                    "description": "Path to FASTA file of adapter sequences to use for adapter removal with FASTP.",
                     "format": "file-path",
                     "mimetype": "text/csv"
                 },

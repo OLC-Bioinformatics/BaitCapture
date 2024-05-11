@@ -39,7 +39,6 @@ include { PARSE_INPUT                   } from '../subworkflows/local/parse_inpu
 include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats'
 include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
 include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
-include { TRIM_READS                    } from '../subworkflows/local/trim_reads'
 include { VALIDATE_TARGET_METADATA      } from '../modules/local/validate_target_metadata'
 
 /*
@@ -56,6 +55,7 @@ include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
 include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
 include { MOSDEPTH                      } from '../modules/nf-core/mosdepth/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
+include { FASTP                         } from '../modules/nf-core/fastp/main'
 include { SAMTOOLS_INDEX                } from '../modules/nf-core/samtools/index/main'
 
 /*
@@ -104,6 +104,10 @@ workflow BAITCAPTURE {
         }
     }
 
+    if (params.adapters) {
+        ch_adapters = Channel.fromPath(params.adapters, checkIfExists: true)
+    }
+
     if (params.target_metadata) {
         ch_target_metadata = Channel.fromPath(params.target_metadata, checkIfExists: true)
         VALIDATE_TARGET_METADATA(ch_targets, ch_target_metadata)
@@ -117,11 +121,16 @@ workflow BAITCAPTURE {
     ch_versions = ch_versions.mix(FASTQC_RAW.out.versions.first())
 
     //
-    // SUBWORKFLOW: TRIM_READS
+    // MODULE: FASTP
     //
     if (!params.skip_trimming) {
-        TRIM_READS(ch_reads)
-        ch_trimmed_reads = TRIM_READS.out.trimmed_reads
+        if (params.adapters) {
+            FASTP(ch_reads, ch_adapters, [], [])
+            ch_trimmed_reads = FASTP.out.trimmed_reads
+        } else {
+            FASTP(ch_reads, [], [], [])
+            ch_trimmed_reads = FASTP.out.trimmed_reads
+        }
         ch_versions = ch_versions.mix(TRIM_READS.out.versions.first())
     }
 
@@ -263,7 +272,7 @@ workflow BAITCAPTURE {
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC_PREPROCESSED.out.zip.collect{it[1]}.ifEmpty([]))
     }
     if (!params.skip_trimming) {
-        ch_multiqc_files = ch_multiqc_files.mix(TRIM_READS.out.json.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
     }
     // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
     // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))

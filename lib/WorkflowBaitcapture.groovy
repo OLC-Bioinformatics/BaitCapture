@@ -20,6 +20,10 @@ class WorkflowBaitcapture {
             Nextflow.error "Incompatible parameters: `--pident_threshold` is only available when using KMA as the aligner (`--aligner kma`)."
         }
 
+        if (params.skip_trimming && params.adapters) {
+            Nextflow.error "Incompatible parameters: `--adapters` is only available when trimming is enabled (remove `--skip_trimming`)."
+        }
+
         // Check input has been provided
         if (!params.input & !params.input_folder) {
             Nextflow.error("Please provide an input samplesheet (e.g. '--input samplesheet.csv') or an input folder (e.g. `--input_folder data/`) to the pipeline.")
