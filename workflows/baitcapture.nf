@@ -125,7 +125,7 @@ workflow BAITCAPTURE {
     //
     if (!params.skip_trimming) {
         if (params.adapters) {
-            FASTP(ch_reads, ch_adapters, [], [])
+            FASTP(ch_reads, ch_adapters.collect(), [], [])
             ch_trimmed_reads = FASTP.out.reads
         } else {
             FASTP(ch_reads, [], [], [])
