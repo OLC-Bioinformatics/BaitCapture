@@ -126,10 +126,10 @@ workflow BAITCAPTURE {
     if (!params.skip_trimming) {
         if (params.adapters) {
             FASTP(ch_reads, ch_adapters, [], [])
-            ch_trimmed_reads = FASTP.out.trimmed_reads
+            ch_trimmed_reads = FASTP.out.reads
         } else {
             FASTP(ch_reads, [], [], [])
-            ch_trimmed_reads = FASTP.out.trimmed_reads
+            ch_trimmed_reads = FASTP.out.reads
         }
         ch_versions = ch_versions.mix(TRIM_READS.out.versions.first())
     }
