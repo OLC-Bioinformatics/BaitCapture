@@ -13,7 +13,6 @@ args = commandArgs(trailingOnly=TRUE)
 
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(glue))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(optparse))
 
@@ -342,7 +341,6 @@ if (!is.null(output_prefix)) {
 package_versions <- c(
   "readr" = packageVersion("readr"),
   "dplyr" = packageVersion("dplyr"),
-  "glue" = packageVersion("glue"),
   "tidyr" = packageVersion("tidyr"),
   "optparse" = packageVersion("optparse")
 )
