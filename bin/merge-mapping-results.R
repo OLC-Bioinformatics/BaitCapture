@@ -179,15 +179,19 @@ report_all_targets = opt$report_all
 force_overwrite = opt$force
 
 # Get output file names
-if (is.null(output_prefix)) {
-  merged_out = file.path(outdir, "mapstats.tsv")
-  presence_absence_out = file.path(outdir, "presence_absence.tsv")
-} else {
-  merged_out = file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = "."))
-  presence_absence_out = file.path(outdir, paste(output_prefix, "presence_absence.tsv", sep = "."))
-}
+merged_out = ifelse(is.null(output_prefix),
+          file.path(outdir, "mapstats.tsv"),
+          file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = ".")))
+
+presence_absence_out = ifelse(is.null(output_prefix),
+                file.path(outdir, "presence_absence.tsv"),
+                file.path(outdir, paste(output_prefix, "presence_absence.tsv", sep = ".")))
+
 if (!is.null(target_metadata_file)) {
-  presence_absence_clusters_out = file.path(outdir, paste(output_prefix, "presence_absence_clusters.tsv", sep = "."))
+  presence_absence_clusters_out = ifelse(is.null(output_prefix),
+                      file.path(outdir, "presence_absence_clusters.tsv"),
+                      file.path(outdir, paste(output_prefix, "presence_absence_clusters.tsv", sep = "."))
+                    )
 }
 
 #-------------------------------------------------------------------------------
@@ -268,7 +272,7 @@ if (report_all_targets == FALSE) {
   merged = merged |> 
     filter(depth != 0)
   if (!is.null(target_metadata_file)) {
-  merged_with_metadata = merged_with_metadata |> 
+    merged_with_metadata = merged_with_metadata |> 
       filter(depth != 0)
   }
 }
@@ -278,7 +282,7 @@ if (report_all_targets == FALSE) {
 #-------------------------------------------------------------------------------
 
 # Target-level
-if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
+if (!is.null(kma_res_file) && !is.null(percent_identity_threshold)) {
   presence_absence = merged |> 
     mutate(presence_absence = if_else(
       len_cov >= len_cov_threshold &
@@ -302,7 +306,7 @@ if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
 }
 
 # Cluster-level
-if (!is.null(target_metadata_file) & !is.null(percent_identity_threshold)) {
+if (!is.null(target_metadata_file) && !is.null(percent_identity_threshold)) {
   presence_absence_clusters = merged_with_metadata |> 
     pivot_longer(cols = contains(metadata_cols),
                  names_to = "metavar_name",
@@ -328,9 +332,11 @@ if (!is.null(output_prefix)) {
   presence_absence = presence_absence |> 
     mutate(sampleid = output_prefix) |> 
     relocate(sampleid, .before = everything())
-  presence_absence_clusters = presence_absence_clusters |> 
-    mutate(sampleid = output_prefix) |> 
-    relocate(sampleid, .before = everything())
+  if (!is.null(target_metadata_file)) {
+    presence_absence_clusters = presence_absence_clusters |> 
+      mutate(sampleid = output_prefix) |> 
+      relocate(sampleid, .before = everything())
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -345,57 +351,33 @@ package_versions <- c(
   "optparse" = packageVersion("optparse")
 )
 
-if (force_overwrite == FALSE && file.exists(merged_out)) {
-  # Raise an error if the merged results file already exists and `--force` isn't used
-  stop(
-    paste(
-      "Output file",
-      merged_out,
-      "already exists. Either remove this file or re-run script with the",
-      "`--force` argument to overwrite."
-    )
-  )
-} else if (force_overwrite == FALSE && file.exists(presence_absence_out)) {
-  # Raise an error if the target-level presence-absence table file already 
-  # exists and `--force` isn't used
-    stop(
-      paste(
-        "Output file",
-        presence_absence_out,
-        "already exists. Either remove this file or re-run script with the",
-        "`--force` argument to overwrite."
-        )
-      )
-  } else {
-  # Create output directory if it doesn't already exist
-  if (!dir.exists(outdir)) {
-    dir.create(outdir)
-  }
-  # Write merged results table
-  merged |>
-    write_tsv(merged_out)
-  # Write presence-absence table
-  presence_absence |> 
-    write_tsv(presence_absence_out)
-  # Write package versions
-  writeLines(paste(names(package_versions), package_versions, sep = " = "), 
-             file.path(outdir, "package-versions.txt"))
-  # If a target metadata file is provided
-  if (!is.null(target_metadata_file)) {
-    if (force_overwrite == FALSE && file.exists(presence_absence_out)) {
-      # Raise an error if the cluster-level presence-absence table file already 
-      # exists and `--force` isn't used
-      stop(
-        paste(
-          "Output file",
-          presence_absence_clusters_out,
-          "already exists. Either remove this file or re-run script with the",
-          "`--force` argument to overwrite."
-        )
-      )
-    } else {
-      presence_absence_clusters |> 
-        write_tsv(presence_absence_clusters_out)
-    }
+# Check for existing files and and raise error if force_overwrite is disabled
+if (force_overwrite == FALSE) {
+  if (file.exists(merged_out)) {
+    stop(paste("Output file", merged_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
+  } else if (file.exists(presence_absence_out)) {
+    stop(paste("Output file", presence_absence_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
+  } else if (file.exists(presence_absence_clusters_out) && !is.null(target_metadata_file)) {
+    stop(paste("Output file", presence_absence_clusters_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
   }
 }
+  
+# Create outdir if it doesn't already exist
+if (!dir.exists(outdir)) {
+  dir.create(outdir)
+}
+ 
+# Write merged results table
+merged |>
+  write_tsv(merged_out)
+# Write presence-absence table
+presence_absence |> 
+  write_tsv(presence_absence_out)
+# Write presence-absence clusters table
+if (!is.null(target_metadata_file)) {
+  presence_absence_clusters |> 
+    write_tsv(presence_absence_clusters_out)
+}
+# Write package versions
+writeLines(paste(names(package_versions), package_versions, sep = " = "), 
+           file.path(outdir, "package-versions.txt"))
