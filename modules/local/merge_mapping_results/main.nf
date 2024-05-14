@@ -8,7 +8,7 @@ process MERGE_MAPPING_RESULTS {
         'biocontainers/mulled-v2-c85b516872f711516305474353432f10480f882d--93a0052cece81cca2539a50e43842b0e5aa614c7-0' }"
 
     input:
-    tuple val(meta), path(aligncov), path(idxstats), path(kma_res)
+    tuple val(meta), path(aligncov), path(idxstats), path(kma_res), path(target_metadata_csv)
 
     output:
     tuple val(meta), path('*.mapstats.tsv')        , emit: mapstats
@@ -22,6 +22,7 @@ process MERGE_MAPPING_RESULTS {
     def args = task.ext.args ?: ""
     def prefix = task.ext.prefix ?: "${meta.id}"
     def kma = kma_res ? "--kma=${kma_res}" : ""
+    def target_metadata = target_metadata_csv ? "--target_metadata=${target_metadata_csv}" : ""
     """
     merge-mapping-results.R \
         --aligncov=${aligncov} \
@@ -29,6 +30,7 @@ process MERGE_MAPPING_RESULTS {
         --output_prefix=${prefix} \
         --outdir . \
         $kma \
+        $target_metadata \
         ${args}
 
     cat <<-END_VERSIONS > versions.yml
