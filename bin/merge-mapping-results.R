@@ -306,7 +306,7 @@ if (!is.null(kma_res_file) && !is.null(percent_identity_threshold)) {
 }
 
 # Cluster-level
-if (!is.null(target_metadata_file) && !is.null(percent_identity_threshold)) {
+if (!is.null(target_metadata_file)) {
   presence_absence_clusters = merged_with_metadata |> 
     pivot_longer(cols = contains(metadata_cols),
                  names_to = "metavar_name",
