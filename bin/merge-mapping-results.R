@@ -13,6 +13,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(glue))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(optparse))
 
@@ -33,7 +34,7 @@ option_list = list(
     c("-i", "--idxstats"),
     type = "character",
     default = NULL,
-    help = "Path to a TSV file produced by `samtools idxstats`",
+    help = "Path to a `*.tsv` file produced by `samtools idxstats`",
     metavar = "path"
   ),
   make_option(
@@ -41,6 +42,13 @@ option_list = list(
     type = "character",
     default = NULL,
     help = "Path to a KMA `*.res` file [optional]",
+    metavar = "path"
+  ),
+  make_option(
+    c("-m", "--target_metadata"),
+    type = "character",
+    default = NULL,
+    help = "Path to a target metadata `*.csv` file [optional]",
     metavar = "path"
   ),
   # Output options
@@ -123,7 +131,8 @@ option_list = list(
 #   args = c(
 #     "--aligncov=results/aligncov/kma/Chicken-10-S1-sub_stats.tsv",
 #     "--idxstats=results/samtools_stats/kma/Chicken-10-S1-sub.idxstats",
-#     # "--kma=results/kma/Chicken-10-S1-sub.res",
+#     "--kma=results/kma/Chicken-10-S1-sub.res",
+#     "--target_metadata=target-metadata/target-metadata_complete.csv",
 #     "--outdir=merged-results/",
 #     "--output_prefix=Chicken-10-S1-sub",
 #     "--len_cov_threshold=0",
@@ -151,6 +160,7 @@ if (is.null(opt$idxstats)) {
   idxstats_file = opt$idxstats
 }
 kma_res_file = opt$kma
+target_metadata_file = opt$target_metadata
 outdir = opt$outdir
 
 # Thresholds
@@ -176,6 +186,9 @@ if (is.null(output_prefix)) {
 } else {
   merged_out = file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = "."))
   presence_absence_out = file.path(outdir, paste(output_prefix, "presence_absence.tsv", sep = "."))
+}
+if (!is.null(target_metadata_file)) {
+  presence_absence_clusters_out = file.path(outdir, paste(output_prefix, "presence_absence_clusters.tsv", sep = "."))
 }
 
 #-------------------------------------------------------------------------------
@@ -204,6 +217,12 @@ if (!is.null(kma_res_file)) {
                 .fn = ~ paste("kma", .x, sep = "_"))
 }
 
+if (!is.null(target_metadata_file)) {
+  target_metadata = read_csv(target_metadata_file,
+                             col_types = cols(.default = col_character()))
+  metadata_cols = names(target_metadata)[names(target_metadata) %in% "target" == FALSE]  
+}
+
 #-------------------------------------------------------------------------------
 # Merge read mapping results
 #-------------------------------------------------------------------------------
@@ -218,15 +237,48 @@ if (!is.null(kma_res_file)) {
               by = c('target', 'seqlen'))
 }
 
+# Create a separate dataframe if a target metadata file is provided, because if
+# a target is present in multiple clusters, additional rows will be created
+if (!is.null(target_metadata_file)) {
+  if (names(target_metadata)[names(target_metadata) %in% names(merged)] == "target") {
+    merged_with_metadata = merged |> 
+      left_join(target_metadata,
+                by = 'target',
+                multiple = 'all') |> 
+      relocate(names(target_metadata), .before = everything())
+  } else {
+    # Raise an error if there is no 'target' column name in the target metadata,
+    # file, or there are column names matching the names from other provided
+    # files
+    stop(
+      paste(
+        "Target metadata file",
+        merged_out,
+        "does not have a column name 'target' OR at least one column name",
+        "matches a name from another input file. Please check that a column",
+        "'target' exists in",
+        merged_out,
+        "and does not have any of the following column names:",
+        names(merged)[-1]
+      )
+    )
+  }
+}
+
 if (report_all_targets == FALSE) {
   merged = merged |> 
     filter(depth != 0)
+  if (!is.null(target_metadata_file)) {
+  merged_with_metadata = merged_with_metadata |> 
+      filter(depth != 0)
+  }
 }
 
 #-------------------------------------------------------------------------------
-# Create presence-absence matrices based upon thresholds
+# Create presence-absence tables based upon thresholds
 #-------------------------------------------------------------------------------
 
+# Target-level
 if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
   presence_absence = merged |> 
     mutate(presence_absence = if_else(
@@ -250,6 +302,22 @@ if (!is.null(kma_res_file) & !is.null(percent_identity_threshold)) {
     select(target, presence_absence)
 }
 
+# Cluster-level
+if (!is.null(target_metadata_file) & !is.null(percent_identity_threshold)) {
+  presence_absence_clusters = merged_with_metadata |> 
+    pivot_longer(cols = contains(metadata_cols),
+                 names_to = "metavar_name",
+                 values_to = "metavar_value") |> 
+    select(target, metavar_name, metavar_value, prop_cov) |> 
+    group_by(metavar_name, metavar_value) |> 
+    slice_max(prop_cov) |> 
+    slice_head() |> 
+    ungroup() |> 
+    mutate(presence_absence = if_else(prop_cov >= prop_cov_threshold, 1, 0)) |>
+    arrange(metavar_name, metavar_value) |> 
+    select(-prop_cov)
+}
+
 #-------------------------------------------------------------------------------
 # Add 'sampleid' column if --output_prefix is provided
 #-------------------------------------------------------------------------------
@@ -259,6 +327,9 @@ if (!is.null(output_prefix)) {
     mutate(sampleid = output_prefix) |> 
     relocate(sampleid, .before = everything())
   presence_absence = presence_absence |> 
+    mutate(sampleid = output_prefix) |> 
+    relocate(sampleid, .before = everything())
+  presence_absence_clusters = presence_absence_clusters |> 
     mutate(sampleid = output_prefix) |> 
     relocate(sampleid, .before = everything())
 }
@@ -271,6 +342,7 @@ if (!is.null(output_prefix)) {
 package_versions <- c(
   "readr" = packageVersion("readr"),
   "dplyr" = packageVersion("dplyr"),
+  "glue" = packageVersion("glue"),
   "tidyr" = packageVersion("tidyr"),
   "optparse" = packageVersion("optparse")
 )
@@ -286,7 +358,8 @@ if (force_overwrite == FALSE && file.exists(merged_out)) {
     )
   )
 } else if (force_overwrite == FALSE && file.exists(presence_absence_out)) {
-  # Raise an error if the presence-absence matrix file already exists and `--force` isn't used
+  # Raise an error if the target-level presence-absence table file already 
+  # exists and `--force` isn't used
     stop(
       paste(
         "Output file",
@@ -305,8 +378,26 @@ if (force_overwrite == FALSE && file.exists(merged_out)) {
     write_tsv(merged_out)
   # Write presence-absence table
   presence_absence |> 
-    write_tsv(presence_absence_out)  
+    write_tsv(presence_absence_out)
   # Write package versions
   writeLines(paste(names(package_versions), package_versions, sep = " = "), 
              file.path(outdir, "package-versions.txt"))
+  # If a target metadata file is provided
+  if (!is.null(target_metadata_file)) {
+    if (force_overwrite == FALSE && file.exists(presence_absence_out)) {
+      # Raise an error if the cluster-level presence-absence table file already 
+      # exists and `--force` isn't used
+      stop(
+        paste(
+          "Output file",
+          presence_absence_clusters_out,
+          "already exists. Either remove this file or re-run script with the",
+          "`--force` argument to overwrite."
+        )
+      )
+    } else {
+      presence_absence_clusters |> 
+        write_tsv(presence_absence_clusters_out)
+    }
+  }
 }
