@@ -124,26 +124,27 @@ option_list = list(
 # Parse CLI args
 #-------------------------------------------------------------------------------
 
-# # Debugging
+# # Uncomment for debugging
 # opt = parse_args(
 #   OptionParser(option_list = option_list),
 #   args = c(
-#     "--aligncov=results/aligncov/kma/Chicken-10-S1-sub_stats.tsv",
-#     "--idxstats=results/samtools_stats/kma/Chicken-10-S1-sub.idxstats",
-#     "--kma=results/kma/Chicken-10-S1-sub.res",
-#     "--target_metadata=target-metadata/target-metadata_complete.csv",
+#     "--aligncov=Chicken-10-S1-sub_stats.tsv",
+#     "--idxstats=Chicken-10-S1-sub.idxstats",
+#     # "--kma=results/kma/Chicken-10-S1-sub.res",
+#     # "--target_metadata=target-metadata/target-metadata_complete.csv",
 #     "--outdir=merged-results/",
 #     "--output_prefix=Chicken-10-S1-sub",
 #     "--len_cov_threshold=0",
 #     "--prop_cov_threshold=0.9",
 #     "--fold_cov_threshold=0.9",
 #     "--mapped_reads_threshold=2",
-#     "--percent_identity_threshold=0.9",
+#     # "--percent_identity_threshold=0.9",
 #     "--report_all",
 #     "--force"
 #     )
 #   )
 
+# Comment for debugging
 opt_parser = OptionParser(option_list = option_list)
 opt = parse_args(opt_parser)
 
@@ -357,8 +358,10 @@ if (force_overwrite == FALSE) {
     stop(paste("Output file", merged_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
   } else if (file.exists(presence_absence_out)) {
     stop(paste("Output file", presence_absence_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
-  } else if (file.exists(presence_absence_clusters_out) && !is.null(target_metadata_file)) {
-    stop(paste("Output file", presence_absence_clusters_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
+  } else if (!is.null(target_metadata_file)) {
+    if (file.exists(presence_absence_clusters_out)) {
+      stop(paste("Output file", presence_absence_clusters_out, "already exists. Either remove this file or re-run script with the `--force` argument to overwrite."))
+    }
   }
 }
   
