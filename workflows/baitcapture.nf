@@ -47,16 +47,20 @@ include { VALIDATE_TARGET_METADATA      } from '../modules/local/validate_target
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { BAM_STATS_SAMTOOLS            } from '../subworkflows/nf-core/bam_stats_samtools/main'
+include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_HOST          } from '../subworkflows/nf-core/bam_stats_samtools/main'
+include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_TARGETS       } from '../subworkflows/nf-core/bam_stats_samtools/main'
 include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem/main'
-include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD } from '../modules/nf-core/bwamem2/index/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-include { FASTQC as FASTQC_RAW          } from '../modules/nf-core/fastqc/main'
-include { FASTQC as FASTQC_PREPROCESSED } from '../modules/nf-core/fastqc/main'
-include { MOSDEPTH                      } from '../modules/nf-core/mosdepth/main'
-include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
-include { FASTP                         } from '../modules/nf-core/fastp/main'
-include { SAMTOOLS_INDEX                } from '../modules/nf-core/samtools/index/main'
+include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD            } from '../modules/nf-core/bwamem2/index/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS                            } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+include { FASTQC as FASTQC_RAW                                   } from '../modules/nf-core/fastqc/main'
+include { FASTQC as FASTQC_PREPROCESSED                          } from '../modules/nf-core/fastqc/main'
+include { FASTQSCAN as FASTQSCAN_RAW                             } from '../modules/nf-core/fastqscan/main'
+include { FASTQSCAN as FASTQSCAN_PREPROCESSED                    } from '../modules/nf-core/fastqscan/main'
+include { MOSDEPTH                                               } from '../modules/nf-core/mosdepth/main'
+include { MULTIQC                                                } from '../modules/nf-core/multiqc/main'
+include { FASTP                                                  } from '../modules/nf-core/fastp/main'
+include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_HOST                  } from '../modules/nf-core/samtools/index/main'
+include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_TARGETS               } from '../modules/nf-core/samtools/index/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -149,18 +153,34 @@ workflow BAITCAPTURE {
 
     if (params.host) {
         if (!params.skip_trimming) {
-            // Trimmomatic + host decontamination
+            // Trimming + host decontamination
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
+            ch_sorted_bam_host = BWAMEM2_HOST_REMOVAL_ALIGN.out.bam
         } else {
             // Host decontamination only
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
+            ch_sorted_bam_host = BWAMEM2_HOST_REMOVAL_ALIGN.out.bam
         }
     } else if (!params.skip_trimming) {
-            // Trimmomatic only
+            // Trimming only
             ch_preprocessed_reads = ch_trimmed_reads
     }
+
+    //
+    // MODULE: SAMTOOLS_INDEX_HOST
+    //
+    SAMTOOLS_INDEX_HOST(ch_sorted_bam_host)
+    ch_sorted_bam_bai_host = SAMTOOLS_INDEX_HOST.out.bai
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX_HOST.out.versions.first())
+
+    //
+    // SUBWORKFLOW: BAM_STATS_SAMTOOLS_TARGETS
+    //
+    BAM_STATS_SAMTOOLS_HOST(ch_sorted_bam_host.join(ch_sorted_bam_bai_host, by: [0]), ch_targets.collect())
+    ch_idxstats = BAM_STATS_SAMTOOLS_HOST.out.idxstats
+    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS_HOST.out.versions.first())
 
     //
     // MODULE: PREPROCESS_STATS
@@ -193,43 +213,43 @@ workflow BAITCAPTURE {
 
     if (params.aligner == 'bwamem2') {
         BWAMEM2_ALIGN_READS(ch_targets, ch_final_reads)
-        ch_sorted_bam = BWAMEM2_ALIGN_READS.out.sorted_bam
+        ch_sorted_bam_targets = BWAMEM2_ALIGN_READS.out.sorted_bam
         ch_versions = ch_versions.mix(BWAMEM2_ALIGN_READS.out.versions)
     } else if (params.aligner == 'kma') {
         KMA_ALIGN_READS(ch_targets, ch_final_reads)
-        ch_sorted_bam = KMA_ALIGN_READS.out.sorted_bam
+        ch_sorted_bam_targets = KMA_ALIGN_READS.out.sorted_bam
         ch_kma_res = KMA_ALIGN_READS.out.res
         ch_versions = ch_versions.mix(KMA_ALIGN_READS.out.versions)
     } else if (params.aligner == 'bwa') {
         BWA_ALIGN_READS(ch_targets, ch_final_reads)
-        ch_sorted_bam = BWA_ALIGN_READS.out.sorted_bam
+        ch_sorted_bam_targets = BWA_ALIGN_READS.out.sorted_bam
         ch_versions = ch_versions.mix(BWA_ALIGN_READS.out.versions)
     }
 
     //
     // MODULE: ALIGNCOV
     //
-    ALIGNCOV(ch_sorted_bam)
+    ALIGNCOV(ch_sorted_bam_targets)
     ch_aligncov_stats = ALIGNCOV.out.stats
 
     //
-    // MODULE: SAMTOOLS_INDEX
+    // MODULE: SAMTOOLS_INDEX_TARGETS
     //
-    SAMTOOLS_INDEX(ch_sorted_bam)
-    ch_sorted_bam_bai = SAMTOOLS_INDEX.out.bai
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
+    SAMTOOLS_INDEX_TARGETS(ch_sorted_bam_targets)
+    ch_sorted_bam_bai_targets = SAMTOOLS_INDEX_TARGETS.out.bai
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX_TARGETS.out.versions.first())
 
     //
-    // SUBWORKFLOW: BAM_STATS_SAMTOOLS
+    // SUBWORKFLOW: BAM_STATS_SAMTOOLS_TARGETS
     //
-    BAM_STATS_SAMTOOLS(ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]), ch_targets.collect())
-    ch_idxstats = BAM_STATS_SAMTOOLS.out.idxstats
-    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
+    BAM_STATS_SAMTOOLS_TARGETS(ch_sorted_bam_targets.join(ch_sorted_bam_bai_targets, by: [0]), ch_targets.collect())
+    ch_idxstats = BAM_STATS_SAMTOOLS_TARGETS.out.idxstats
+    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS_TARGETS.out.versions.first())
 
     //
     // MODULE: MOSDEPTH
     //
-    ch_mosdepth_in = ch_sorted_bam.join(ch_sorted_bam_bai, by: [0]).map{ meta, bam, bai -> [meta, bam, bai, []] }
+    ch_mosdepth_in = ch_sorted_bam_targets.join(ch_sorted_bam_bai_targets, by: [0]).map{ meta, bam, bai -> [meta, bam, bai, []] }
     MOSDEPTH(ch_mosdepth_in, ch_targets.collect())
     ch_mosdepth_summary = MOSDEPTH.out.summary_txt
     ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
@@ -252,6 +272,14 @@ workflow BAITCAPTURE {
         MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in, [])
     }
     ch_versions = ch_versions.mix(MERGE_MAPPING_RESULTS.out.versions.first())
+
+    //
+    // MODULE: FASTQSCAN
+    //
+    FASTQSCAN_RAW(ch_reads)
+    ch_versions = ch_versions.mix(FASTQSCAN_RAW.out.versions.first())
+    FASTQSCAN_PREPROCESSED(ch_preprocessed_reads)
+    ch_versions = ch_versions.mix(FASTQSCAN_RAW.out.versions.first())
 
     //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS
@@ -282,9 +310,9 @@ workflow BAITCAPTURE {
     if (!params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
     }
-    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]))
-    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]))
+    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS_TARGETS.out.stats.collect{it[1]}.ifEmpty([]))
+    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS_TARGETS.out.flagstat.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS_TARGETS.out.idxstats.collect{it[1]}.ifEmpty([]))
 
 
     // TODO: Add process outputs for MultiQC input here
