@@ -8,12 +8,14 @@ process MERGE_MAPPING_RESULTS {
         'biocontainers/mulled-v2-c85b516872f711516305474353432f10480f882d--93a0052cece81cca2539a50e43842b0e5aa614c7-0' }"
 
     input:
-    tuple val(meta), path(aligncov), path(idxstats), path(kma_res), path(target_metadata_csv)
+    tuple val(meta), path(aligncov), path(idxstats), path(kma_res)
+    path target_metadata_csv
 
     output:
-    tuple val(meta), path('*.mapstats.tsv')        , emit: mapstats
-    tuple val(meta), path('*.presence_absence.tsv'), emit: presence_absence
-    path "versions.yml"                            , emit: versions
+    tuple val(meta), path('*.mapstats.tsv')                 , emit: mapstats
+    tuple val(meta), path('*.presence_absence.tsv')         , emit: presence_absence
+    tuple val(meta), path('*.presence_absence_clusters.tsv'), emit: presence_absence_clusters, optional:true
+    path "versions.yml"                                     , emit: versions
 
     when:
     task.ext.when == null || task.ext.when

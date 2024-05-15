@@ -237,30 +237,20 @@ workflow BAITCAPTURE {
     //
     // MODULE: MERGE_MAPPING_RESULTS
     //
-    // TODO: Test each of these scenarios
-    println "Before setting ch_merge_mapping_results_in"
-    if (params.aligner == 'kma' && params.target_metadata) {
+    if (params.aligner == 'kma') {
         ch_merge_mapping_results_in = ch_aligncov_stats
         .combine(ch_idxstats, by: [0])
         .combine(ch_kma_res, by: [0])
-        .combine(ch_target_metadata)
-        ch_merge_mapping_results_in.view()
-    } else if (params.aligner == 'kma' && !params.target_metadata) {
-        ch_merge_mapping_results_in = ch_aligncov_stats.combine(ch_idxstats, by: [0])
-        .combine(ch_kma_res, by: [0])
-        .combine(Channel.empty())
-    } else if (!params.aligner == 'kma' && params.target_metadata) {
-        ch_merge_mapping_results_in = ch_aligncov_stats
-        .combine(ch_idxstats, by: [0])
-        .combine(ch_aligncov_stats.map{ meta, kma_res -> [meta, []] }, by: [0])
-        .combine(ch_target_metadata)
     } else {
         ch_merge_mapping_results_in = ch_aligncov_stats
         .combine(ch_idxstats, by: [0])
         .combine(ch_aligncov_stats.map{ meta, kma_res -> [meta, []] }, by: [0])
-        .combine(Channel.empty())
     }
-    MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in)
+    if (params.target_metadata) {
+        MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in, ch_target_metadata.collect())
+    } else {
+        MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in, [])
+    }
     ch_versions = ch_versions.mix(MERGE_MAPPING_RESULTS.out.versions.first())
 
     //
