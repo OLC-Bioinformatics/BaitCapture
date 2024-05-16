@@ -30,9 +30,17 @@
 
   > Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
 
+- [fastq-scan](https://github.com/rpetit3/fastq-scan)
+  
+    > Petit, R. (2023) fastq-scan [Online].
+
 - [KMA](https://bitbucket.org/genomicepidemiology/kma)
 
   > Clausen PTLC, Aarestrup FM, Lund O. Rapid and precise alignment of raw reads against redundant databases with KMA. BMC Bioinformatics. 2018;19:307. doi: 10.1186/s12859-018-2336-6
+
+- [Mosdepth](https://academic.oup.com/bioinformatics/article/34/5/867/4583630)
+
+  > Pedersen BS, Quinlan AR. Mosdepth: quick coverage calculation for genomes and exomes. Bioinformatics. 2018;34(5):867-868. doi: 10.1093/bioinformatics/btx699
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
