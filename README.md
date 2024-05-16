@@ -22,10 +22,10 @@ The steps of the workflow are:
 2. (Optional) Trim the raw sequence reads using [fastp](https://github.com/OpenGene/fastp).
 3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
 4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
-5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), [BWA](https://github.com/lh3/bwa), or [KMA](https://bitbucket.org/genomicepidemiology/kma).
-6. Obtain sequence coverage and depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
-7. Obtain further alignment statistics using [SAMtools](https://github.com/samtools/samtools).
-8. Create a summary report with [MultiQC](https://github.com/ewels/MultiQC).
+5. Obtain total read and bp counts from the raw and pre-processed sequence data using [fastq-scan](https://github.com/rpetit3/fastq-scan).
+6. Align trimmed and/or decontaminated reads against the database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
+7. Obtain sequence coverage and depth statistics from the alignments using [AlignCov](https://github.com/pcrxn/aligncov), [Mosdepth](https://github.com/brentp/mosdepth), and [SAMtools](https://github.com/samtools/samtools).
+8. Create a [MultiQC](https://github.com/ewels/MultiQC) report and other summary reports with custom scripts.
 
 ## Usage
 
