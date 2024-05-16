@@ -34,7 +34,7 @@ option_list = list(
     c("-p", "--preprocessed"),
     type = "character",
     default = NULL,
-    help = "Path to a `*.json` file produced by fastqscan for preprocessed sequence data",
+    help = "Path to a `*.json` file produced by fastqscan for preprocessed sequence data [optional]",
     metavar = "path"
   ),  
   make_option(
@@ -85,9 +85,9 @@ option_list = list(
 # opt = parse_args(
 #   OptionParser(option_list = option_list),
 #   args = c(
-#     "--raw=results/fastqscan_raw/Chicken-10-S1-sub.json",
-#     "--preprocessed=results/fastqscan_preprocessed/Chicken-10-S1-sub.json",
-#     # "--trimmed=results/fastp/Chicken-10-S1-sub.fastp.log",
+#     "--raw=results/fastqscan_raw/Chicken-10-S1-sub_raw.json",
+#     # "--preprocessed=results/fastqscan_preprocessed/Chicken-10-S1-sub_preprocessed.json",
+#     "--trimmed=results/fastp/Chicken-10-S1-sub.fastp.log",
 #     "--stats=results/samtools_stats_targets/kma/Chicken-10-S1-sub.stats",
 #     "--outdir=summarized-stats/",
 #     "--output_prefix=Chicken-10-S1-sub",
@@ -95,7 +95,7 @@ option_list = list(
 #     )
 #   )
 
-# # Comment for debugging
+# Comment for debugging
 opt_parser = OptionParser(option_list = option_list)
 opt = parse_args(opt_parser)
 
@@ -150,9 +150,11 @@ raw_fastqscan = fromJSON(raw_fastqscan_file, simplifyDataFrame = TRUE)$qc_stats 
   as_tibble() |> 
   select(raw_total_reads = read_total, raw_total_bp = total_bp)
 
-preprocessed_fastqscan = fromJSON(preprocessed_fastqscan_file, simplifyDataFrame = TRUE)$qc_stats |> 
-  as_tibble() |> 
-  select(preprocessed_total_reads = read_total, preprocessed_total_bp = total_bp)
+if (!is.null(preprocessed_fastqscan_file)) {
+  preprocessed_fastqscan = fromJSON(preprocessed_fastqscan_file, simplifyDataFrame = TRUE)$qc_stats |> 
+    as_tibble() |> 
+    select(preprocessed_total_reads = read_total, preprocessed_total_bp = total_bp)
+}
 
 if (!is.null(trimmed_fastp_file)) {
   trimmed_fastp = read_file(trimmed_fastp_file) |> 
@@ -184,15 +186,26 @@ if (!is.null(trimmed_fastp_file)) {
 # the sum of the `mapped_reads` column in samtools idxstats output will count
 # bases from reads that mapped to multiple targets if not using KMA
 
-if (!is.null(trimmed_fastp_file)) {
+# Case 1: Trimming and dehosting
+if (!is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, trimmed_fastp, preprocessed_fastqscan, stats) |> 
     mutate(percent_reads_lost_fastp = (1 - fastp_total_reads/raw_total_reads) * 100) |> 
     mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/fastp_total_reads) * 100) |> 
     mutate(percent_reads_on_target = (1 - mapped_total_reads/preprocessed_total_reads) * 100)
-} else {
+# Case 2: Trimming only
+} else if (!is.null(trimmed_fastp_file) && is.null(preprocessed_fastqscan_file)) {
+  sumstats = bind_cols(raw_fastqscan, trimmed_fastp, stats) |> 
+    mutate(percent_reads_lost_fastp = (1 - fastp_total_reads/raw_total_reads) * 100) |> 
+    mutate(percent_reads_on_target = (1 - mapped_total_reads/fastp_total_reads) * 100)
+# Case 3: Dehosting only
+} else if (is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, preprocessed_fastqscan, stats) |> 
-    mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/raw_total_reads) * 100) |>
+    mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/raw_total_reads) * 100) |> 
     mutate(percent_reads_on_target = (1 - mapped_total_reads/preprocessed_total_reads) * 100)
+# Case 4: No trimming or dehosting
+} else if (is.null(trimmed_fastp_file) && is.null(preprocessed_fastqscan_file)) {
+  sumstats = bind_cols(raw_fastqscan, stats) |> 
+    mutate(percent_reads_on_target = (1 - mapped_total_reads/raw_total_reads) * 100)
 }
 
 #-------------------------------------------------------------------------------
