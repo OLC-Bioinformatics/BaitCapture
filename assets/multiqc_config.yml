@@ -16,7 +16,7 @@ data_format: "tsv"
 # run_modules:
 #   - fastqc
 
-top_modules:
+module_order:
   - "fastqc":
       name: "FastQC: Raw reads"
       path_filters_exclude:
@@ -26,6 +26,13 @@ top_modules:
       info: "After trimming and, if requested, host contamination removal."
       path_filters:
         - "*preprocessed*"
+  - "fastp":
+      name: "fastp: Raw reads"
+  - "mosdepth":
+      name: "Mosdepth"
+
+remove_sections:
+  - mosdepth-coverage-dist-cov
 
 table_columns_visible:
   "FastQC: Raw reads":
@@ -64,3 +71,11 @@ table_columns_name:
     median_sequence_length: "Median length (processed)"
     total_sequences: "M Seqs (processed)"
     percent_fails: "% Fails (processed)"
+
+mosdepth_config:
+  general_stats_coverage:
+    - 0.5
+    - 1
+    - 1.5
+    - 2
+    - 10
