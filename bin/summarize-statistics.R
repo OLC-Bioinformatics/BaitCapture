@@ -186,6 +186,8 @@ if (!is.null(trimmed_fastp_file)) {
 # the sum of the `mapped_reads` column in samtools idxstats output will count
 # bases from reads that mapped to multiple targets if not using KMA
 
+specify_decimal = function(x, k) trimws(format(round(x, k), nsmall=k))
+
 # Case 1: Trimming and dehosting
 if (!is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, trimmed_fastp, preprocessed_fastqscan, stats) |> 
@@ -207,6 +209,13 @@ if (!is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, stats) |> 
     mutate(percent_reads_on_target = (mapped_total_reads/raw_total_reads) * 100)
 }
+
+# Round percent cols to 2 decimal places
+sumstats = sumstats |> 
+  mutate(
+    across(starts_with("percent"),
+           ~ specify_decimal(.x, 2))
+  )
 
 #-------------------------------------------------------------------------------
 # Add 'sampleid' column if --output_prefix is provided
