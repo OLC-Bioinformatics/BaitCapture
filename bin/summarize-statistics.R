@@ -191,21 +191,21 @@ if (!is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, trimmed_fastp, preprocessed_fastqscan, stats) |> 
     mutate(percent_reads_lost_fastp = (1 - fastp_total_reads/raw_total_reads) * 100) |> 
     mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/fastp_total_reads) * 100) |> 
-    mutate(percent_reads_on_target = (1 - mapped_total_reads/preprocessed_total_reads) * 100)
+    mutate(percent_reads_on_target = (mapped_total_reads/preprocessed_total_reads) * 100)
 # Case 2: Trimming only
 } else if (!is.null(trimmed_fastp_file) && is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, trimmed_fastp, stats) |> 
     mutate(percent_reads_lost_fastp = (1 - fastp_total_reads/raw_total_reads) * 100) |> 
-    mutate(percent_reads_on_target = (1 - mapped_total_reads/fastp_total_reads) * 100)
+    mutate(percent_reads_on_target = (mapped_total_reads/fastp_total_reads) * 100)
 # Case 3: Dehosting only
 } else if (is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, preprocessed_fastqscan, stats) |> 
     mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/raw_total_reads) * 100) |> 
-    mutate(percent_reads_on_target = (1 - mapped_total_reads/preprocessed_total_reads) * 100)
+    mutate(percent_reads_on_target = (mapped_total_reads/preprocessed_total_reads) * 100)
 # Case 4: No trimming or dehosting
 } else if (is.null(trimmed_fastp_file) && is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, stats) |> 
-    mutate(percent_reads_on_target = (1 - mapped_total_reads/raw_total_reads) * 100)
+    mutate(percent_reads_on_target = (mapped_total_reads/raw_total_reads) * 100)
 }
 
 #-------------------------------------------------------------------------------
