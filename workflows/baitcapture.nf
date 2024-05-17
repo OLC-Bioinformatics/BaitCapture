@@ -36,7 +36,6 @@ include { ALIGNCOV                      } from '../modules/local/aligncov/main'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
 include { MERGE_MAPPING_RESULTS         } from '../modules/local/merge_mapping_results'
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
-include { PREPROCESS_STATS              } from '../modules/local/preprocess_stats'
 include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
 include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
 include { SUMMARIZE_STATS               } from '../modules/local/summarize_stats'
@@ -186,14 +185,6 @@ workflow BAITCAPTURE {
         BAM_STATS_SAMTOOLS_HOST(ch_sorted_bam_host.join(ch_sorted_bam_bai_host, by: [0]), ch_targets.collect())
         ch_idxstats = BAM_STATS_SAMTOOLS_HOST.out.idxstats
         ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS_HOST.out.versions.first())
-    }
-
-    //
-    // MODULE: PREPROCESS_STATS
-    //
-    if (params.host || !params.skip_trimming) {
-        PREPROCESS_STATS(ch_reads.join(ch_preprocessed_reads))
-        ch_versions = ch_versions.mix(PREPROCESS_STATS.out.versions.first()) 
     }
 
     //
