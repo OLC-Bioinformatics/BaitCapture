@@ -1,5 +1,5 @@
-include { KMA_INDEX                              } from '../../modules/local/kma_index'
-include { KMA_ALIGN                              } from '../../modules/local/kma_align'
+include { KMA_INDEX } from '../../modules/local/kma/index'
+include { KMA_ALIGN } from '../../modules/local/kma/align'
 
 workflow KMA_ALIGN_READS {
 

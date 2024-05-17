@@ -32,7 +32,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { ALIGNCOV                      } from '../modules/local/aligncov/main'
+include { ALIGNCOV                      } from '../modules/local/aligncov'
 include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
 include { MERGE_MAPPING_RESULTS         } from '../modules/local/merge_mapping_results'
 include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
@@ -47,20 +47,20 @@ include { VALIDATE_TARGET_METADATA      } from '../modules/local/validate_target
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_HOST          } from '../subworkflows/nf-core/bam_stats_samtools/main'
-include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_TARGETS       } from '../subworkflows/nf-core/bam_stats_samtools/main'
-include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem/main'
-include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD            } from '../modules/nf-core/bwamem2/index/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS                            } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-include { FASTQC as FASTQC_RAW                                   } from '../modules/nf-core/fastqc/main'
-include { FASTQC as FASTQC_PREPROCESSED                          } from '../modules/nf-core/fastqc/main'
-include { FASTQSCAN as FASTQSCAN_RAW                             } from '../modules/nf-core/fastqscan/main'
-include { FASTQSCAN as FASTQSCAN_PREPROCESSED                    } from '../modules/nf-core/fastqscan/main'
-include { MOSDEPTH                                               } from '../modules/nf-core/mosdepth/main'
-include { MULTIQC                                                } from '../modules/nf-core/multiqc/main'
-include { FASTP                                                  } from '../modules/nf-core/fastp/main'
-include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_HOST                  } from '../modules/nf-core/samtools/index/main'
-include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_TARGETS               } from '../modules/nf-core/samtools/index/main'
+include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_HOST          } from '../subworkflows/nf-core/bam_stats_samtools'
+include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_TARGETS       } from '../subworkflows/nf-core/bam_stats_samtools'
+include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem'
+include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD            } from '../modules/nf-core/bwamem2/index'
+include { CUSTOM_DUMPSOFTWAREVERSIONS                            } from '../modules/nf-core/custom/dumpsoftwareversions'
+include { FASTQC as FASTQC_RAW                                   } from '../modules/nf-core/fastqc'
+include { FASTQC as FASTQC_PREPROCESSED                          } from '../modules/nf-core/fastqc'
+include { FASTQSCAN as FASTQSCAN_RAW                             } from '../modules/nf-core/fastqscan'
+include { FASTQSCAN as FASTQSCAN_PREPROCESSED                    } from '../modules/nf-core/fastqscan'
+include { MOSDEPTH                                               } from '../modules/nf-core/mosdepth'
+include { MULTIQC                                                } from '../modules/nf-core/multiqc'
+include { FASTP                                                  } from '../modules/nf-core/fastp'
+include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_HOST                  } from '../modules/nf-core/samtools/index'
+include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_TARGETS               } from '../modules/nf-core/samtools/index'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

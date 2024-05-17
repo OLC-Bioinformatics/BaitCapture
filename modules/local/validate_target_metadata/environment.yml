@@ -1,0 +1,8 @@
+name: validate_target_metadata
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - pandas=0.19.2
+  - biopython=1.79
