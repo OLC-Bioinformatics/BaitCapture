@@ -32,14 +32,15 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { ALIGNCOV                      } from '../modules/local/aligncov'
-include { BWAMEM2_ALIGN_READS           } from '../subworkflows/local/bwamem2_align_reads'
-include { MERGE_MAPPING_RESULTS         } from '../modules/local/merge_mapping_results'
-include { PARSE_INPUT                   } from '../subworkflows/local/parse_input'
-include { BWA_ALIGN_READS               } from '../subworkflows/local/bwa_align_reads'
-include { KMA_ALIGN_READS               } from '../subworkflows/local/kma_align_reads'
-include { SUMMARIZE_STATS               } from '../modules/local/summarize_stats'
-include { VALIDATE_TARGET_METADATA      } from '../modules/local/validate_target_metadata'
+include { ALIGNCOV                 } from '../modules/local/aligncov'
+include { BWA_ALIGN_READS          } from '../subworkflows/local/bwa_align_reads'
+include { BWAMEM2_ALIGN_READS      } from '../subworkflows/local/bwamem2_align_reads'
+include { CAT_RESULTS              } from '../modules/local/cat_results'
+include { KMA_ALIGN_READS          } from '../subworkflows/local/kma_align_reads'
+include { MERGE_MAPPING_RESULTS    } from '../modules/local/merge_mapping_results'
+include { PARSE_INPUT              } from '../subworkflows/local/parse_input'
+include { SUMMARIZE_STATS          } from '../modules/local/summarize_stats'
+include { VALIDATE_TARGET_METADATA } from '../modules/local/validate_target_metadata'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,13 +53,13 @@ include { BAM_STATS_SAMTOOLS as BAM_STATS_SAMTOOLS_TARGETS       } from '../subw
 include { BWAMEM2_HOST_REMOVAL_MEM as BWAMEM2_HOST_REMOVAL_ALIGN } from '../modules/local/bwamem2_host_mem'
 include { BWAMEM2_INDEX as BWAMEM2_HOST_REMOVAL_BUILD            } from '../modules/nf-core/bwamem2/index'
 include { CUSTOM_DUMPSOFTWAREVERSIONS                            } from '../modules/nf-core/custom/dumpsoftwareversions'
-include { FASTQC as FASTQC_RAW                                   } from '../modules/nf-core/fastqc'
+include { FASTP                                                  } from '../modules/nf-core/fastp'
 include { FASTQC as FASTQC_PREPROCESSED                          } from '../modules/nf-core/fastqc'
-include { FASTQSCAN as FASTQSCAN_RAW                             } from '../modules/nf-core/fastqscan'
+include { FASTQC as FASTQC_RAW                                   } from '../modules/nf-core/fastqc'
 include { FASTQSCAN as FASTQSCAN_PREPROCESSED                    } from '../modules/nf-core/fastqscan'
+include { FASTQSCAN as FASTQSCAN_RAW                             } from '../modules/nf-core/fastqscan'
 include { MOSDEPTH                                               } from '../modules/nf-core/mosdepth'
 include { MULTIQC                                                } from '../modules/nf-core/multiqc'
-include { FASTP                                                  } from '../modules/nf-core/fastp'
 include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_HOST                  } from '../modules/nf-core/samtools/index'
 include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_TARGETS               } from '../modules/nf-core/samtools/index'
 
@@ -252,6 +253,7 @@ workflow BAITCAPTURE {
     ALIGNCOV(ch_sorted_bam_targets)
     ch_aligncov_stats = ALIGNCOV.out.stats
 
+
     //
     // MODULE: SAMTOOLS_INDEX_TARGETS
     //
@@ -286,18 +288,25 @@ workflow BAITCAPTURE {
     //
     if (params.aligner == 'kma') {
         ch_merge_mapping_results_in = ch_aligncov_stats
-        .combine(ch_idxstats, by: [0])
-        .combine(ch_kma_res, by: [0])
+            .combine(ch_idxstats, by: [0])
+            .combine(ch_kma_res, by: [0])
     } else {
         ch_merge_mapping_results_in = ch_aligncov_stats
-        .combine(ch_idxstats, by: [0])
-        .combine(ch_aligncov_stats.map{ meta, kma_res -> [meta, []] }, by: [0])
+            .combine(ch_idxstats, by: [0])
+            .combine(ch_aligncov_stats
+            .map{ meta, kma_res -> [meta, []] }, by: [0])
     }
     if (params.target_metadata) {
         MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in, ch_target_metadata.collect())
+        ch_presence_absence_clusters = MERGE_MAPPING_RESULTS.out.presence_absence_clusters
+            .map{ meta, presence_absence_clusters -> presence_absence_clusters}.collect()
     } else {
         MERGE_MAPPING_RESULTS(ch_merge_mapping_results_in, [])
     }
+    ch_mapstats = MERGE_MAPPING_RESULTS.out.mapstats
+        .map{ meta, mapstats -> mapstats}.collect()
+    ch_presence_absence = MERGE_MAPPING_RESULTS.out.presence_absence
+        .map{ meta, presence_absence -> presence_absence}.collect()
     ch_versions = ch_versions.mix(MERGE_MAPPING_RESULTS.out.versions.first())
 
     //
@@ -305,26 +314,28 @@ workflow BAITCAPTURE {
     //
     if (!params.skip_trimming && !params.host) {
         ch_summarize_stats_in = ch_fastqscan_raw
-        .combine(ch_fastqscan_raw.map{ meta, fastqscan_preprocessed -> [meta, []] }, by: [0])
-        .combine(ch_stats, by: [0])
-        .combine(ch_fastp_log, by: [0])
+            .combine(ch_fastqscan_raw.map{ meta, fastqscan_preprocessed -> [meta, []] }, by: [0])
+            .combine(ch_stats, by: [0])
+            .combine(ch_fastp_log, by: [0])
     } else if (params.skip_trimming && !params.host) {
         ch_summarize_stats_in = ch_fastqscan_raw
-        .combine(ch_fastqscan_raw.map{ meta, fastqscan_preprocessed -> [meta, []] }, by: [0])
-        .combine(ch_stats, by: [0])
-        .combine(ch_fastqscan_raw.map{ meta, fastp_log -> [meta, []] }, by: [0])
+            .combine(ch_fastqscan_raw.map{ meta, fastqscan_preprocessed -> [meta, []] }, by: [0])
+            .combine(ch_stats, by: [0])
+            .combine(ch_fastqscan_raw.map{ meta, fastp_log -> [meta, []] }, by: [0])
     } else if (!params.skip_trimming && params.host) {
         ch_summarize_stats_in = ch_fastqscan_raw
-        .combine(ch_fastqscan_preprocessed, by: [0])
-        .combine(ch_stats, by: [0])
-        .combine(ch_fastp_log, by: [0])
+            .combine(ch_fastqscan_preprocessed, by: [0])
+            .combine(ch_stats, by: [0])
+            .combine(ch_fastp_log, by: [0])
     } else if (params.skip_trimming && params.host) {
         ch_summarize_stats_in = ch_fastqscan_raw
-        .combine(ch_fastqscan_preprocessed, by: [0])
-        .combine(ch_stats, by: [0])
-        .combine(ch_fastqscan_raw.map{ meta, fastp_log -> [meta, []] }, by: [0])
+            .combine(ch_fastqscan_preprocessed, by: [0])
+            .combine(ch_stats, by: [0])
+            .combine(ch_fastqscan_raw.map{ meta, fastp_log -> [meta, []] }, by: [0])
     }
     SUMMARIZE_STATS(ch_summarize_stats_in)
+    ch_sumstats = SUMMARIZE_STATS.out.sumstats
+        .map{ meta, sumstats -> sumstats}.collect()
     ch_versions = ch_versions.mix(SUMMARIZE_STATS.out.versions.first())
 
     /*
@@ -332,6 +343,16 @@ workflow BAITCAPTURE {
     Workflow cleanup
     ========================================================================
     */
+
+    //
+    // MODULE: CAT_RESULTS
+    //
+    if (params.target_metadata) {
+        CAT_RESULTS(ch_mapstats, ch_presence_absence, ch_presence_absence_clusters, ch_sumstats)
+    } else {
+        CAT_RESULTS(ch_mapstats, ch_presence_absence, [], ch_sumstats)
+    }
+    ch_versions = ch_versions.mix(CAT_RESULTS.out.versions)
 
     //
     // MODULE: CUSTOM_DUMPSOFTWAREVERSIONS

@@ -11,8 +11,8 @@ process SUMMARIZE_STATS {
     tuple val(meta), path(raw_fastqscan_json), path(preprocessed_fastqscan_json), path(stats), path(fastp_log)
 
     output:
-    tuple val(meta), path('*.sumstats.tsv')                 , emit: mapstats
-    path "versions.yml"                                     , emit: versions
+    tuple val(meta), path('*.sumstats.tsv'), emit: sumstats
+    path "versions.yml"                    , emit: versions
 
     when:
     task.ext.when == null || task.ext.when

@@ -14,7 +14,7 @@ process MERGE_MAPPING_RESULTS {
     output:
     tuple val(meta), path('*.mapstats.tsv')                 , emit: mapstats
     tuple val(meta), path('*.presence_absence.tsv')         , emit: presence_absence
-    tuple val(meta), path('*.presence_absence_clusters.tsv'), emit: presence_absence_clusters, optional:true
+    tuple val(meta), path('*.presence_absence_clusters.tsv'), emit: presence_absence_clusters, optional: true
     path "versions.yml"                                     , emit: versions
 
     when:
