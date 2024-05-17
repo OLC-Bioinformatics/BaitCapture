@@ -168,7 +168,7 @@ if (!is.null(trimmed_fastp_file)) {
       regex = "Read([1,2]) ([a-z]+) filtering:\ntotal reads: ([0-9]+)\ntotal bases: ([0-9]+).*"
     ) |> 
     mutate(across(c(total_reads, total_bp),
-           ~ as.integer(.x))) |> 
+           ~ as.numeric(.x))) |> 
     group_by(before_after_filtering) |> 
     summarize(total_reads = sum(total_reads),
               total_bp = sum(total_bp)) |> 
