@@ -153,20 +153,20 @@ workflow BAITCAPTURE {
     //
 
     if (params.host) {
+        // Trimming + host decontamination
         if (!params.skip_trimming) {
-            // Trimming + host decontamination
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_trimmed_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
             ch_sorted_bam_host = BWAMEM2_HOST_REMOVAL_ALIGN.out.bam
+        // Host decontamination only
         } else {
-            // Host decontamination only
             BWAMEM2_HOST_REMOVAL_ALIGN(ch_reads, ch_host_index.collect())
             ch_preprocessed_reads = BWAMEM2_HOST_REMOVAL_ALIGN.out.reads
             ch_sorted_bam_host = BWAMEM2_HOST_REMOVAL_ALIGN.out.bam
         }
-    } else if (!params.skip_trimming) {
-            // Trimming only
-            ch_preprocessed_reads = ch_trimmed_reads
+        // Trimming only
+        } else if (!params.skip_trimming) {
+                ch_preprocessed_reads = ch_trimmed_reads
     }
 
     //
@@ -223,10 +223,11 @@ workflow BAITCAPTURE {
     ========================================================================
     */
 
-   if (params.host || !params.skip_trimming) {
+    // Trimming or host decontamination
+    if (params.host || !params.skip_trimming) {
         ch_final_reads = ch_preprocessed_reads
+    // No trimming or host decontamination
     } else {
-        // No trimming or host decontamination
         ch_final_reads = ch_reads
     }
 
@@ -361,8 +362,6 @@ workflow BAITCAPTURE {
     if (!params.skip_trimming) {
         ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
     }
-    // ch_multiqc_files = ch_multiqc_files.mix(BAM_STATS_SAMTOOLS_TARGETS.out.idxstats.collect{it[1]}.ifEmpty([]))
-
 
     // TODO: Add process outputs for MultiQC input here
 
