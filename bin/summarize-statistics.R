@@ -144,7 +144,7 @@ stats = read_lines(stats_file,
   rename(mapped_total_reads = `reads mapped`,
          mapped_total_bp = `bases mapped`) |> 
   mutate(across(everything(),
-                ~ as.integer(.x)))
+                ~ as.numeric(.x)))
 
 raw_fastqscan = fromJSON(raw_fastqscan_file, simplifyDataFrame = TRUE)$qc_stats |> 
   as_tibble() |> 
