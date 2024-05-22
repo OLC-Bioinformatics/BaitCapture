@@ -24,6 +24,10 @@ class WorkflowBaitcapture {
             Nextflow.error "Incompatible parameters: `--adapters` is only available when trimming is enabled (remove `--skip_trimming`)."
         }
 
+        if (params.prop_cov_threshold <= 0 && params.target_metadata) {
+            Nextflow.error "Incompatible parameters: `--prop_cov_threshold` cannot be set to 0 when a `--target_metadata` file is provided, since cluster-level reporting uses this threshold to choose a representative target from each cluster."
+        }
+
         // Check input has been provided
         if (!params.input & !params.input_folder) {
             Nextflow.error("Please provide an input samplesheet (e.g. '--input samplesheet.csv') or an input folder (e.g. `--input_folder data/`) to the pipeline.")

@@ -130,15 +130,15 @@ option_list = list(
 #   args = c(
 #     "--aligncov=Chicken-10-S1-sub_stats.tsv",
 #     "--idxstats=Chicken-10-S1-sub.idxstats",
-#     # "--kma=results/kma/Chicken-10-S1-sub.res",
-#     # "--target_metadata=target-metadata/target-metadata_complete.csv",
+#     "--kma=Chicken-10-S1-sub.res",
+#     "--target_metadata=../../../target-metadata/target-metadata_complete.csv",
 #     "--outdir=merged-results/",
 #     "--output_prefix=Chicken-10-S1-sub",
 #     "--len_cov_threshold=0",
 #     "--prop_cov_threshold=0.9",
 #     "--fold_cov_threshold=0.9",
 #     "--mapped_reads_threshold=2",
-#     # "--percent_identity_threshold=0.9",
+#     "--percent_identity_threshold=0.9",
 #     "--report_all",
 #     "--force"
 #     )
@@ -179,20 +179,29 @@ output_prefix = opt$output_prefix
 report_all_targets = opt$report_all
 force_overwrite = opt$force
 
+# If prop_cov_threshold is set to 0, disable cluster-level reporting
+if (prop_cov_threshold <= 0 & !is.null(target_metadata_file)) {
+  warning(paste(
+    "Cluster-level reporting is disabled while `--prop_cov_threshold` isn't",
+    "greater than 0. Please increase the value to re-enable cluster-level",
+    "reporting."))
+  target_metadata_file = NULL
+}
+
 # Get output file names
 merged_out = ifelse(is.null(output_prefix),
-          file.path(outdir, "mapstats.tsv"),
-          file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = ".")))
+                    file.path(outdir, "mapstats.tsv"),
+                    file.path(outdir, paste(output_prefix, "mapstats.tsv", sep = ".")))
 
 presence_absence_out = ifelse(is.null(output_prefix),
-                file.path(outdir, "presence_absence.tsv"),
-                file.path(outdir, paste(output_prefix, "presence_absence.tsv", sep = ".")))
+                              file.path(outdir, "presence_absence.tsv"),
+                              file.path(outdir, paste(output_prefix, "presence_absence.tsv", sep = ".")))
 
 if (!is.null(target_metadata_file)) {
   presence_absence_clusters_out = ifelse(is.null(output_prefix),
-                      file.path(outdir, "presence_absence_clusters.tsv"),
-                      file.path(outdir, paste(output_prefix, "presence_absence_clusters.tsv", sep = "."))
-                    )
+                                         file.path(outdir, "presence_absence_clusters.tsv"),
+                                         file.path(outdir, paste(output_prefix, "presence_absence_clusters.tsv", sep = "."))
+  )
 }
 
 #-------------------------------------------------------------------------------
@@ -308,18 +317,38 @@ if (!is.null(kma_res_file) && !is.null(percent_identity_threshold)) {
 
 # Cluster-level
 if (!is.null(target_metadata_file)) {
-  presence_absence_clusters = merged_with_metadata |> 
+  x = merged_with_metadata |> 
     pivot_longer(cols = contains(metadata_cols),
                  names_to = "metavar_name",
                  values_to = "metavar_value") |> 
-    select(target, metavar_name, metavar_value, prop_cov) |> 
-    group_by(metavar_name, metavar_value) |> 
+    group_by(metavar_name, metavar_value) |>
     slice_max(prop_cov) |> 
     slice_head() |> 
-    ungroup() |> 
-    mutate(presence_absence = if_else(prop_cov >= prop_cov_threshold, 1, 0)) |>
-    arrange(metavar_name, metavar_value) |> 
-    select(-prop_cov)
+    ungroup()
+  if (!is.null(kma_res_file) && !is.null(percent_identity_threshold)) {
+    presence_absence_clusters = x |> 
+      mutate(presence_absence = if_else(
+        len_cov >= len_cov_threshold &
+          prop_cov >= prop_cov_threshold &
+          fold_cov >= fold_cov_threshold &
+          mapped_reads >= mapped_reads_threshold &
+          kma_template_identity >= percent_identity_threshold,
+        1,
+        0)) |>
+      arrange(metavar_name, metavar_value) |> 
+      select(target, metavar_name, metavar_value)
+  } else {
+    presence_absence_clusters = x |> 
+      mutate(presence_absence = if_else(
+        len_cov >= len_cov_threshold &
+          prop_cov >= prop_cov_threshold &
+          fold_cov >= fold_cov_threshold &
+          mapped_reads >= mapped_reads_threshold,
+        1,
+        0)) |>
+      arrange(metavar_name, metavar_value) |> 
+      select(target, metavar_name, metavar_value)
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -364,12 +393,12 @@ if (force_overwrite == FALSE) {
     }
   }
 }
-  
+
 # Create outdir if it doesn't already exist
 if (!dir.exists(outdir)) {
   dir.create(outdir)
 }
- 
+
 # Write merged results table
 merged |>
   write_tsv(merged_out)
