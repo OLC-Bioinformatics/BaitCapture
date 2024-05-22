@@ -336,7 +336,7 @@ if (!is.null(target_metadata_file)) {
         1,
         0)) |>
       arrange(metavar_name, metavar_value) |> 
-      select(target, metavar_name, metavar_value)
+      select(metavar_name, metavar_value, presence_absence)
   } else {
     presence_absence_clusters = x |> 
       mutate(presence_absence = if_else(
@@ -347,7 +347,7 @@ if (!is.null(target_metadata_file)) {
         1,
         0)) |>
       arrange(metavar_name, metavar_value) |> 
-      select(target, metavar_name, metavar_value)
+      select(metavar_name, metavar_value, presence_absence)
   }
 }
 
