@@ -4,8 +4,8 @@ process MERGE_MAPPING_RESULTS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-c85b516872f711516305474353432f10480f882d%3A93a0052cece81cca2539a50e43842b0e5aa614c7-0' :
-        'biocontainers/mulled-v2-c85b516872f711516305474353432f10480f882d--93a0052cece81cca2539a50e43842b0e5aa614c7-0' }"
+        'https://depot.galaxyproject.org/singularity/mulled-v2-c85b516872f711516305474353432f10480f882d:93a0052cece81cca2539a50e43842b0e5aa614c7-0' :
+        'biocontainers/mulled-v2-c85b516872f711516305474353432f10480f882d:93a0052cece81cca2539a50e43842b0e5aa614c7-0' }"
 
     input:
     tuple val(meta), path(aligncov), path(idxstats), path(kma_res)
