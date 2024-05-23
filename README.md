@@ -1,3 +1,4 @@
+<!-- omit in toc -->
 # BaitCapture
 
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A522.10.1-23aa62.svg)](https://www.nextflow.io/)
@@ -6,6 +7,22 @@
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 <p align='center'><img src='assets/baitcapture-banner_v02.png' alt="BaitCapture banner" width="75%"></p>
+
+<!-- omit in toc -->
+## Contents
+
+- [Introduction](#introduction)
+- [Quick start](#quick-start)
+- [Pipeline summary](#pipeline-summary)
+- [Usage](#usage)
+  - [Input type: Samplesheet](#input-type-samplesheet)
+  - [Input type: Folder](#input-type-folder)
+- [Testing the workflow](#testing-the-workflow)
+- [Running the workflow on high-performance compute clusters](#running-the-workflow-on-high-performance-compute-clusters)
+  - [Waffles](#waffles)
+- [Advanced usage](#advanced-usage)
+- [Contributions and support](#contributions-and-support)
+- [Citations](#citations)
 
 ## Introduction
 
@@ -135,11 +152,14 @@ For your convenience, profiles have been added to simplify running the workflow 
 
 ### Waffles
 
-To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use the following command:
+To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use `-profile waffles`.
+For example:
 
 ```bash
 nextflow run OLC-Bioinformatics/BaitCapture \
   -profile waffles \
+  --input samplesheet.csv \
+  --targets targets.fa \
   --outdir <OUTDIR>
 ```
 
