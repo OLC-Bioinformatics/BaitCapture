@@ -29,7 +29,7 @@ BaitCapture offers the following features:
 
 ## Quick start
 
-<img alt="BaitCapture terminal demo" src=assets/baitcapture-demo.gif width="75%" />
+<img alt="BaitCapture terminal demo" src=assets/baitcapture-demo.gif width="100%" />
 
 ## Pipeline summary
 
