@@ -7,14 +7,31 @@
 
 <p align='center'><img src='assets/baitcapture-banner_v02.png' alt="BaitCapture banner" width="75%"></p>
 
-**BaitCapture** is a bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
+## Introduction
 
-## Overview
+**BaitCapture** is a bioinformatics workflow designed for processing sequencing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
-BaitCapture is an end-to-end bioinformatics workflow used to summarize alignment statistics for paired-end Illumina sequence reads against a database of target sequences.
-There are two outputs:
-- A tab-separated table of alignment statistics against each gene target for each sample.
-- A tab-separated presence-absence matrix, based upon alignment statistic thresholds determined by the user.
+Though it was designed in consideration of bait-capture sequencing data, BaitCapture can be used for **any** paired-end sequencing dataset where the user needs to align sequence reads to a reference database of gene targets.
+
+BaitCapture offers the following features:
+
+- **Quality control**: Assess the quality of raw and pre-processed sequence data.
+- **Pre-processing**:
+  - Read decontamination using a host reference genome
+  - Quality-based trimming
+  - Adapter removal
+- **Read alignment**: Align reads against a reference database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
+- **Alignment reports**:
+  - `mapstats.tsv`: A table of read alignment statistics against each gene target for each sample, including KMA-specific alignment statistics.
+  - `sumstats.tsv`: A table of on-target alignment and read filtering rates for each step of the workflow.
+  - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based on user-defined thresholds.
+  - `presence_absence_clusters.tsv`: A table of presence-absence calls for each gene target cluster in each sample, with clusters defined by a target metadata file (e.g. resistance mechanism).
+
+## Quick start
+
+<img alt="BaitCapture terminal demo" src=assets/baitcapture-demo.gif width="75%" />
+
+## Pipeline summary
 
 The steps of the workflow are:
 
@@ -30,8 +47,7 @@ The steps of the workflow are:
 ## Usage
 
 If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
-to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
-with `-profile test` before running the workflow on actual data.
+to set-up Nextflow.
 
 Please provide pipeline parameters via the CLI or Nextflow `-params-file` option.
 Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
@@ -104,13 +120,13 @@ nextflow run . \
   --outdir <OUTDIR>
 ```
 
-If your `<OUTDIR>` was `test-results`, you could then run the following command to inspect the SAMtools alignment summary statistics for the test sample:
+If your `<OUTDIR>` was `results/`, you could then run the following command to inspect the summary statistics for the test sample:
 
 ```bash
-cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-
+$ cat results/summary/sumstats.tsv 
+sampleid        raw_total_reads raw_total_bp    fastp_total_reads       fastp_total_bp  preprocessed_total_reads        preprocessed_total_bp   mapped_total_reads      mapped_total_bp percent_reads_lost_fastp        percent_reads_lost_dehosting    percent_reads_on_target
+SRR14739083     553624  83043600        464776  69619648        455764  68278988        98485   14753774        16.05   1.94    21.61
 ```
-
-The expected output for this is saved under `assets/SRR14739083.stats`.
 
 ## Running the workflow on high-performance compute clusters
 
