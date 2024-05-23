@@ -1,7 +1,7 @@
 process VALIDATE_TARGET_METADATA {
     label 'process_single'
 
-    conda "bioconda::pandas=0.19.2 bioconda::biopython=1.79"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/mulled-v2-ec389033376a3033fa570b73c1569fb99993aaf4:7fb9f5a1996d57d6c45b8d0350ed82996a0e1071-0' :
         'biocontainers/mulled-v2-ec389033376a3033fa570b73c1569fb99993aaf4:7fb9f5a1996d57d6c45b8d0350ed82996a0e1071-0' }"  
