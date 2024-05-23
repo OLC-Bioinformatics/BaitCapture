@@ -8,6 +8,8 @@
 
 <p align='center'><img src='assets/baitcapture-banner_v02.png' alt="BaitCapture banner" width="75%"></p>
 
+**BaitCapture** is a bioinformatics workflow designed for processing sequencing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
+
 <!-- omit in toc -->
 ## Contents
 
@@ -25,8 +27,6 @@
 - [Citations](#citations)
 
 ## Introduction
-
-**BaitCapture** is a bioinformatics workflow designed for processing sequencing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
 Though it was designed in consideration of bait-capture sequencing data, BaitCapture can be used for **any** paired-end sequencing dataset where the user needs to align sequence reads to a reference database of gene targets.
 
