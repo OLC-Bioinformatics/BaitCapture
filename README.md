@@ -19,6 +19,7 @@
 - [Usage](#usage)
   - [Input type: Samplesheet](#input-type-samplesheet)
   - [Input type: Folder](#input-type-folder)
+- [Output](#output)
 - [Testing the workflow](#testing-the-workflow)
 - [Running the workflow on high-performance compute clusters](#running-the-workflow-on-high-performance-compute-clusters)
   - [Waffles](#waffles)
@@ -38,7 +39,7 @@ BaitCapture offers the following features:
   - Quality-based trimming
   - Adapter removal
 - **Read alignment**: Align reads against a reference database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
-- **Alignment reports**:
+- **[Alignment reports](docs/alignment_reports.md)**:
   - `mapstats.tsv`: A table of read alignment statistics against each gene target for each sample, including KMA-specific alignment statistics.
   - `sumstats.tsv`: A table of on-target alignment and read filtering rates for each step of the workflow.
   - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based on user-defined thresholds.
@@ -124,6 +125,29 @@ nextflow run OLC-Bioinformatics/BaitCapture \
 ```
 
 If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
+
+## Output
+
+The pipeline will output the following directories:
+
+```
+results/
+├── fastp
+├── fastqc
+│   ├── preprocessed
+│   └── raw
+├── multiqc
+│   ├── multiqc_data
+│   └── multiqc_plots
+├── pipeline_info
+└── summary
+```
+
+- `fastp/`: Contains fastp reports for trimmed FASTQ files.
+- `fastqc/`: Contains FastQC reports for raw and pre-processed FASTQ files.
+- `multiqc/`: Contains MultiQC reports.
+- `pipeline_info/`: Contains Nextflow logs and reports.
+- `summary/`: Contains [alignment reports](docs/alignment_reports.md) for each sample.
 
 ## Testing the workflow
 
