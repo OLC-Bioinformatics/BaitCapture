@@ -16,7 +16,7 @@ workflow BWA_ALIGN_READS {
     ch_versions = ch_versions.mix(BWA_BUILD.out.versions.first())
 
     // Align final reads to indexed target database
-    BWA_ALIGN(ch_final_reads, ch_indexed_targets.collect(), true)
+    BWA_ALIGN(ch_final_reads, ch_indexed_targets.collect(), [[id:'no_fasta'], []], true)
     ch_sorted_bam = BWA_ALIGN.out.bam
     ch_versions = ch_versions.mix(BWA_ALIGN.out.versions.first())
 

@@ -1,0 +1,8 @@
+name: kma_align
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - kma=1.4.9
+  - samtools=1.20

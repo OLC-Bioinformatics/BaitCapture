@@ -22,13 +22,25 @@
 
   > Vasimuddin M, Misra S, Li H, Aluru S. Efficient architecture-aware acceleration of BWA-MEM for multicore systems. IEEE Parallel and Distributed Processing Symposium (IPDPS). 2019;19028010. doi: 10.1109/IPDPS.2019.00041
 
+- [fastp](https://onlinelibrary.wiley.com/doi/10.1002/imt2.107)
+
+  > Chen, S. Ultrafast one-pass FASTQ data preprocessing, quality control, and deduplication using fastp. iMeta. 2023;2:e107. doi: 10.1002/imt2.107
+
 - [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
   > Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
 
+- [fastq-scan](https://github.com/rpetit3/fastq-scan)
+  
+    > Petit, R. (2023) fastq-scan [Online].
+
 - [KMA](https://bitbucket.org/genomicepidemiology/kma)
 
   > Clausen PTLC, Aarestrup FM, Lund O. Rapid and precise alignment of raw reads against redundant databases with KMA. BMC Bioinformatics. 2018;19:307. doi: 10.1186/s12859-018-2336-6
+
+- [Mosdepth](https://academic.oup.com/bioinformatics/article/34/5/867/4583630)
+
+  > Pedersen BS, Quinlan AR. Mosdepth: quick coverage calculation for genomes and exomes. Bioinformatics. 2018;34(5):867-868. doi: 10.1093/bioinformatics/btx699
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
@@ -37,11 +49,6 @@
 - [SAMtools](https://doi.org/10.1093/bioinformatics/btp352)
 
   > Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R, 1000 Genome Project Data Processing Subgroup. The Sequence Alignment/Map format and SAMtools. Bioinformatics. 2009;25(16):2078–2079. doi: 10.1093/bioinformatics/btp352
-
-- [Trimmomatic](https://academic.oup.com/bioinformatics/article/30/15/2114/2390096)
-
-  > Bolger AM, Lohse M, Usadel B. Trimmomatic: a flexible trimmer for Illumina sequence data. Bioinformatics. 2014;30(15):2114-2120. doi: 10.1093/bioinformatics/btu170
-
 
 ## Software packaging/containerisation tools
 

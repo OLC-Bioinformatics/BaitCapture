@@ -1,0 +1,8 @@
+name: merge_mapping_results
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-optparse=1.7.3
+  - r-tidyverse=2.0.0

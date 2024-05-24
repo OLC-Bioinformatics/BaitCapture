@@ -12,10 +12,27 @@ class WorkflowBaitcapture {
     //
     public static void initialise(params, log) {
 
-
         if (!params.targets) {
-            Nextflow.error "FASTA file of gene targets not specified with e.g. '--targets targets.fa' or via a detectable config file."
+            Nextflow.error "Missing parameter: FASTA file of gene targets not specified with e.g. '--targets targets.fa' or via a detectable config file."
         }
+
+        if (params.aligner != 'kma' && params.pident_threshold) {
+            Nextflow.error "Incompatible parameters: `--pident_threshold` is only available when using KMA as the aligner (`--aligner kma`)."
+        }
+
+        if (params.skip_trimming && params.adapters) {
+            Nextflow.error "Incompatible parameters: `--adapters` is only available when trimming is enabled (remove `--skip_trimming`)."
+        }
+
+        if (params.prop_cov_threshold <= 0 && params.target_metadata) {
+            Nextflow.error "Incompatible parameters: `--prop_cov_threshold` cannot be set to 0 when a `--target_metadata` file is provided, since cluster-level reporting uses this threshold to choose a representative target from each cluster."
+        }
+
+        // Check input has been provided
+        if (!params.input & !params.input_folder) {
+            Nextflow.error("Please provide an input samplesheet (e.g. '--input samplesheet.csv') or an input folder (e.g. `--input_folder data/`) to the pipeline.")
+        }
+
     }
 
     //

@@ -1,3 +1,4 @@
+<!-- omit in toc -->
 # BaitCapture
 
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A522.10.1-23aa62.svg)](https://www.nextflow.io/)
@@ -7,40 +8,68 @@
 
 <p align='center'><img src='assets/baitcapture-banner_v02.png' alt="BaitCapture banner" width="75%"></p>
 
-**BaitCapture** is a bioinformatics workflow for processing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
+**BaitCapture** is a bioinformatics workflow designed for processing sequencing data obtained from targeted resistome bait-capture sequencing, built using [Nextflow](https://www.nextflow.io/).
 
-## Overview
+<!-- omit in toc -->
+## Contents
 
-BaitCapture is an end-to-end bioinformatics workflow used to obtain coverage information for paired-end Illumina sequence reads against a database of target sequences.
-The output is a tab-separated table of alignment coverages against each gene target for each sample.
-For example:
+- [Introduction](#introduction)
+- [Quick start](#quick-start)
+- [Pipeline summary](#pipeline-summary)
+- [Usage](#usage)
+  - [Input type: Samplesheet](#input-type-samplesheet)
+  - [Input type: Folder](#input-type-folder)
+    - [Case #1: Default file name pattern](#case-1-default-file-name-pattern)
+    - [Case #2: Alternate file name pattern](#case-2-alternate-file-name-pattern)
+- [Output](#output)
+- [Testing the workflow](#testing-the-workflow)
+- [Running the workflow on high-performance compute clusters](#running-the-workflow-on-high-performance-compute-clusters)
+  - [Waffles](#waffles)
+- [Advanced usage](#advanced-usage)
+- [Contributions and support](#contributions-and-support)
+- [Citations](#citations)
 
-```
-target	seqlen	depth	len_cov	prop_cov	fold_cov
-1__dfrA32__NG_047729.1__1	674	0	0	0	0
-2__aac6__NG_052380.1__1	752	0	0	0	0
-2__aac6__NG_052221.1__2	755	1860	157	0.20794701986755	2.4635761589404
-2__aac6__NG_052259.1__3	755	3550	414	0.548344370860927	4.70198675496689
-```
+## Introduction
 
-The workflow also outputs a table of read depths for each base pair within each gene target for a more granular view of coverage information.
+BaitCapture is based upon a Bash script workflow originally created by [Shay et al. (2023)](http://doi.org/10.1186/s40793-023-00482-0).
+Though it was designed in particular consideration of bait-capture sequencing data, BaitCapture can be used for any paired-end Illumina sequencing dataset where the user needs to align many sequence reads to a reference database of gene targets.
+
+BaitCapture offers the following features:
+
+- **Quality control**: Assess the quality of raw and pre-processed sequence data.
+- **Pre-processing**:
+  - Read decontamination using a host reference genome
+  - Quality-based trimming
+  - Adapter removal
+- **Read alignment**: Align reads against a reference database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
+- **[Alignment reports](docs/alignment_reports.md)**:
+  - `mapstats.tsv`: A table of read alignment statistics against each gene target for each sample, including KMA-specific alignment statistics.
+  - `sumstats.tsv`: A table of summary statistics for each sample, including the on-target alignment rate, and the number of reads lost from host decontamination and filtering.
+  - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based upon user-defined thresholds.
+  - `presence_absence_clusters.tsv`: A table of presence-absence calls for each gene target cluster in each sample, with clusters defined by a target metadata file (e.g. resistance mechanism).
+
+
+
+## Quick start
+
+<img alt="BaitCapture terminal demo" src=assets/baitcapture-demo.gif width="100%" />
+
+## Pipeline summary
 
 The steps of the workflow are:
 
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
-2. (Optional) Trim the raw sequence reads using [Trimmomatic](https://github.com/usadellab/Trimmomatic).
-3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
+2. (Optional) Trim the raw sequence reads using [fastp](https://github.com/OpenGene/fastp).
+3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
 4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
-5. Align trimmed and/or decontaminated reads against the database of gene targets using [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), [BWA](https://github.com/lh3/bwa), or [KMA](https://bitbucket.org/genomicepidemiology/kma).
-6. Obtain sequence coverage and depth statistics from the alignments and save tables in TSV format using [AlignCov](https://github.com/pcrxn/aligncov).
-7. Obtain further alignment statistics using [SAMtools](https://github.com/samtools/samtools).
-8. Create a summary report with [MultiQC](https://github.com/ewels/MultiQC).
+5. Obtain total read and bp counts from the raw and pre-processed sequence data using [fastq-scan](https://github.com/rpetit3/fastq-scan).
+6. Align trimmed and/or decontaminated reads against the database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
+7. Obtain sequence coverage and depth statistics from the alignments using [AlignCov](https://github.com/pcrxn/aligncov), [Mosdepth](https://github.com/brentp/mosdepth), and [SAMtools](https://github.com/samtools/samtools).
+8. Create a [MultiQC](https://github.com/ewels/MultiQC) report and other summary reports with custom scripts.
 
 ## Usage
 
-If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
-to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
-with `-profile test` before running the workflow on actual data.
+If you are new to Nextflow and the nf-core framework, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow.
 
 Please provide pipeline parameters via the CLI or Nextflow `-params-file` option.
 Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
@@ -77,19 +106,22 @@ nextflow run OLC-Bioinformatics/BaitCapture \
 ### Input type: Folder
 
 Instead of a samplesheet, the user can instead provide a path to a directory containing gzipped FASTQ files.
-In this case, the sample name will be the name of the file up until the first period (`.`).
+In this case, the sample name will be the name of the file up until the first underscore (`_`).
 
-For example, for a folder `data/` that looks as follows:
+#### Case \#1: Default file name pattern
+
+The default file naming pattern that `--input_folder` searches for is `"/*_R{1,2}.fastq.gz"`.
+For example, for a folder `data/` containing sequencing files that looks as follows:
 
 ```bash
 data
-├── ERR9958133_R1.fastq.gz
-├── ERR9958133_R2.fastq.gz
-├── ERR9958134_R1.fastq.gz
-└── ERR9958134_R2.fastq.gz
+├── ERR9958133_R1_001.fastq.gz
+├── ERR9958133_R2_001.fastq.gz
+├── ERR9958134_R1_001.fastq.gz
+└── ERR9958134_R2_001.fastq.gz
 ```
 
-The pipeline can be run using:
+The workflow can be run simply by using:
 
 ```bash
 nextflow run OLC-Bioinformatics/BaitCapture \
@@ -99,11 +131,67 @@ nextflow run OLC-Bioinformatics/BaitCapture \
    --outdir <OUTDIR>
 ```
 
-If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
+And the sample names will be:
+- ERR9958133
+- ERR9958134
+
+#### Case \#2: Alternate file name pattern
+
+If the names of the gzipped FASTQ files **do not** end with `_R{1,2}_001.fastq.gz`, an alternate sequencing file pattern must be specified using `--pattern`.
+For example, for a folder `more-data/` that looks as follows:
+
+```bash
+more-data
+├── SAMN000214_R1.fastq.gz
+├── SAMN000214_R2.fastq.gz
+├── SAMN000215_R1.fastq.gz
+└── SAMN000215_R2.fastq.gz
+```
+
+The workflow can be run using:
+
+```bash
+nextflow run OLC-Bioinformatics/BaitCapture \
+   -profile <docker/singularity/.../institute> \
+   --input_folder data/ \
+   --pattern "/*_R{1,2}.fastq.gz" \
+   --targets targets.fa \
+   --outdir <OUTDIR>
+```
+
+And the sample names will be:
+- SAMN000214
+- SAMN000215
+
+> [!NOTE]
+> When providing an argument to `--pattern`, the string must be enclosed in double quotes (`""`) and must be prepended with a forward slash (`/`).
+
+## Output
+
+The pipeline will output the following directories:
+
+```
+results/
+├── fastp
+├── fastqc
+│   ├── preprocessed
+│   └── raw
+├── multiqc
+│   ├── multiqc_data
+│   └── multiqc_plots
+├── pipeline_info
+└── summary
+```
+
+- `fastp/`: Contains fastp reports for trimmed FASTQ files.
+- `fastqc/`: Contains FastQC reports for raw and pre-processed FASTQ files.
+- `multiqc/`: Contains MultiQC reports.
+- `pipeline_info/`: Contains Nextflow logs and reports.
+- `summary/`: Contains [alignment reports](docs/alignment_reports.md) for each sample.
 
 ## Testing the workflow
 
-To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow:
+To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow as follows:
 
 ```bash
 git clone https://github.com/OLC-Bioinformatics/BaitCapture
@@ -113,13 +201,13 @@ nextflow run . \
   --outdir <OUTDIR>
 ```
 
-If your `<OUTDIR>` was `test-results`, you could then run the following command to inspect the SAMtools alignment summary statistics for the test sample:
+If your `<OUTDIR>` was `results/`, you could then run the following command to inspect the summary statistics for the test sample:
 
 ```bash
-cat test-results/samtools_stats/bwamem2/SRR14739083.stats | grep ^SN | cut -f 2-
+$ cat results/summary/sumstats.tsv 
+sampleid        raw_total_reads raw_total_bp    fastp_total_reads       fastp_total_bp  decontam_total_reads        decontam_total_bp   mapped_total_reads      mapped_total_bp percent_reads_lost_fastp        percent_reads_lost_decontam    percent_reads_on_target
+SRR14739083     553624  83043600        464776  69619648        455764  68278988        98485   14753774        16.05   1.94    21.61
 ```
-
-The expected output for this is saved under `assets/SRR14739083.stats`.
 
 ## Running the workflow on high-performance compute clusters
 
@@ -128,11 +216,14 @@ For your convenience, profiles have been added to simplify running the workflow 
 
 ### Waffles
 
-To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use the following command:
+To run BaitCapture on National Microbiology Laboratory's HPC cluster Waffles using Singularity, use `-profile waffles`.
+For example:
 
 ```bash
 nextflow run OLC-Bioinformatics/BaitCapture \
   -profile waffles \
+  --input samplesheet.csv \
+  --targets targets.fa \
   --outdir <OUTDIR>
 ```
 
@@ -141,40 +232,52 @@ nextflow run OLC-Bioinformatics/BaitCapture \
 More usage information can be obtained at any time by running `nextflow run OLC-Bioinformatics/BaitCapture --help`:
 
 ```
-$ nextflow run . --help
-N E X T F L O W  ~  version 23.04.2
-Launching `./main.nf` [modest_picasso] DSL2 - revision: f078cc2e0b
+$ nextflow run OLC-Bioinformatics/BaitCapture --help
+N E X T F L O W  ~  version 23.10.1
+Launching `https://github.com/OLC-Bioinformatics/BaitCapture` [stupefied_bassi] DSL2 - revision: 0fd15d548b [dev]
 
 
 ------------------------------------------------------
-  olc/baitcapture v1.0dev
+  olc/baitcapture v1.0.0-g0fd15d5
 ------------------------------------------------------
 Typical pipeline command:
 
-  nextflow run olc/baitcapture --input samplesheet.csv --targets targets.fa -profile docker
+  nextflow run olc/baitcapture --input samplesheet.csv --targets targets.fa --outdir results/ -profile singularity
 
 Input/output options
+  --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
+  --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
+  --pattern                          [string]  Naming of sequencing files for `--input_folder`. Must use double-quotes (`""`) and a prepended slash (`/`). 
+                                               [default: "/*_R{1,2}_001.fastq.gz"] 
   --targets                          [string]  Path to FASTA file of gene targets for alignment.
   --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
                                                infrastructure. 
-  --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
-  --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
+  --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
+  --adapters                         [string]  Path to FASTA file of adapter sequences to use for adapter removal with FASTP.
+  --target_metadata                  [string]  Path to comma-separated file containing information about the metadata for targets used in the 
+                                               experiment. 
   --email                            [string]  Email address for completion summary.
   --multiqc_title                    [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
 
 Workflow execution options
   --aligner                          [string]  Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets). (accepted: 
-                                               bwamem2, kma, bwa) [default: bwamem2] 
-  --extension                        [string]  Naming of sequencing files. [default: /*.fastq.gz]
-  --host                             [string]  Path to FASTA file of host genome to use for host DNA removal (decontamination).
-  --skip_trimmomatic                 [boolean] Indicate whether to skip trimming of raw reads.
-  --trimmomatic                      [string]  Trimmomatic parameters. [default: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 
-                                               MINLEN:36] 
+                                               bwamem2, kma, bwa) [default: kma] 
+  --skip_trimming                    [boolean] Indicate whether to skip trimming of raw reads.
+  --report_all                       [boolean] Report undetected targets in merged results files.
+
+Target detection thresholds
+  --fold_cov_threshold               [number]  The minimum fold-coverage of a target that must be achieved to call a positive detection. [default: 0.9]
+  --len_cov_threshold                [integer] The minimum length (in bp) that a target must be covered by to call a positive detection. [default: 0]
+  --mapped_reads_threshold           [integer] The minimum number of reads that must be mapped to a target to call a positive detection. [default: 2]
+  --prop_cov_threshold               [number]  The minimum percentage of length (in bp) that a target must be covered by to call a positive detection. 
+                                               [default: 0.9] 
+  --pident_threshold                 [number]  The minimum percentage identity match to a target that must be achieved to call a positive detection (only 
+                                               available with `--aligner kma`). 
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
 
- !! Hiding 23 params, use --validationShowHiddenParams to show them !!
+ !! Hiding 23 params, use the 'validation.showHiddenParams' config value to show them !!
 ------------------------------------------------------
 If you use olc/baitcapture for your analysis please cite:
 
@@ -182,7 +285,7 @@ If you use olc/baitcapture for your analysis please cite:
   https://doi.org/10.1038/s41587-020-0439-x
 
 * Software dependencies
-  https://github.com/OLC-Bioinformatics/BaitCapture/blob/main/CITATIONS.md
+  https://github.com/olc/baitcapture/blob/master/CITATIONS.md
 ------------------------------------------------------
 ```
 

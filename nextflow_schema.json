@@ -1,10 +1,10 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/olc/baitcapture/master/nextflow_schema.json",
     "title": "olc/baitcapture pipeline parameters",
     "description": "A Nextflow workflow for processing data obtained from targeted resistome bait-capture sequencing",
     "type": "object",
-    "definitions": {
+    "defs": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -12,18 +12,6 @@
             "description": "Define where the pipeline should find input data and save output data.",
             "required": ["targets", "outdir"],
             "properties": {
-                "targets": {
-                    "type": "string",
-                    "fa_icon": "fas fa-bullseye",
-                    "format": "file-path",
-                    "description": "Path to FASTA file of gene targets for alignment."
-                },
-                "outdir": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
-                    "fa_icon": "fas fa-folder-open"
-                },
                 "input": {
                     "type": "string",
                     "format": "file-path",
@@ -40,7 +28,49 @@
                     "fa_icon": "fas fa-dna",
                     "mimetype": "text/tsv",
                     "description": "Path to folder containing paired-end gzipped FASTQ files.",
-                    "help_text": "Path to folder containing paired-end compressed FASTQ files.\n\nExample for input data organization for two samples:\n\n```bash\ndata\n  \u251c\u2500sample1_1_L001_R1_001.fastq.gz\n  \u251c\u2500sample1_1_L001_R2_001.fastq.gz\n  \u251c\u2500sample2_1_L001_R1_001.fastq.gz\n  \u2514\u2500sample2_1_L001_R2_001.fastq.gz\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The folder must contain gzip compressed demultiplexed fastq files. If the file names do not follow the default (`\"/*_R{1,2}_001.fastq.gz\"`), please check `--extension`.\n3. Sample identifiers are extracted from file names, i.e. the string before the first underscore `_`, these must be unique\n4. If your data is scattered, produce a sample sheet."
+                    "help_text": "Path to folder containing paired-end compressed FASTQ files.\n\nExample for input data organization for two samples:\n\n```bash\ndata\n  \u251c\u2500sample1_1_L001_R1_001.fastq.gz\n  \u251c\u2500sample1_1_L001_R2_001.fastq.gz\n  \u251c\u2500sample2_1_L001_R1_001.fastq.gz\n  \u2514\u2500sample2_1_L001_R2_001.fastq.gz\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The folder must contain gzip compressed demultiplexed fastq files. If the file names do not follow the default (`\"/*_R{1,2}_001.fastq.gz\"`), please check `--pattern`.\n3. Sample identifiers are extracted from file names, i.e. the string before the first underscore `_`, these must be unique\n4. If your data is scattered, produce a sample sheet."
+                },
+                "pattern": {
+                    "type": "string",
+                    "default": "\"/*_R{1,2}_001.fastq.gz\"",
+                    "fa_icon": "fas fa-font",
+                    "description": "Naming of sequencing files for `--input_folder`. Must use double-quotes (`\"\"`) and a prepended slash (`/`).",
+                    "help_text": "Indicates the naming of sequencing files (default: `\"/*_R{1,2}_001.fastq.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required.\n2. The star (`*`) is the required wildcard for sample names.\n3. The pattern must be enclosed in quotes."
+                },
+                "targets": {
+                    "type": "string",
+                    "fa_icon": "fas fa-bullseye",
+                    "format": "file-path",
+                    "description": "Path to FASTA file of gene targets for alignment."
+                },
+                "outdir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "host": {
+                    "type": "string",
+                    "fa_icon": "fas fa-dna",
+                    "description": "Path to FASTA file of host genome to use for host DNA removal (decontamination).",
+                    "format": "file-path",
+                    "mimetype": "text/csv"
+                },
+                "adapters": {
+                    "type": "string",
+                    "description": "Path to FASTA file of adapter sequences to use for adapter removal with FASTP.",
+                    "format": "file-path",
+                    "mimetype": "text/csv"
+                },
+                "target_metadata": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "description": "Path to comma-separated file containing information about the metadata for targets used in the experiment.",
+                    "help_text": "Use this parameter to optionally specify the location of a target metadata file. It has to be a comma-separated file with at least 2 columns, and a header row.",
+                    "fa_icon": "fas fa-file-csv"
                 },
                 "email": {
                     "type": "string",
@@ -56,7 +86,7 @@
                 }
             }
         },
-        "new_group_1": {
+        "worklow_execution_options": {
             "title": "Workflow execution options",
             "type": "object",
             "description": "Parameters to control execution options for the workflow",
@@ -64,34 +94,62 @@
             "properties": {
                 "aligner": {
                     "type": "string",
-                    "default": "bwamem2",
+                    "default": "kma",
                     "description": "Alignment tool to use for aligning (preprocessed) reads to the provided database of gene targets).",
                     "enum": ["bwamem2", "kma", "bwa"]
                 },
-                "extension": {
-                    "type": "string",
-                    "default": "/*.fastq.gz",
-                    "fa_icon": "fas fa-font",
-                    "description": "Naming of sequencing files.",
-                    "help_text": "Indicates the naming of sequencing files (default: `\"/*.fastq.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required.\n2. The star (`*`) is the required wildcard for sample names.\n3. The pattern must be enclosed in quotes."
-                },
-                "host": {
-                    "type": "string",
-                    "fa_icon": "fas fa-dna",
-                    "description": "Path to FASTA file of host genome to use for host DNA removal (decontamination).",
-                    "format": "file-path",
-                    "mimetype": "text/csv"
-                },
-                "skip_trimmomatic": {
+                "skip_trimming": {
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
                     "description": "Indicate whether to skip trimming of raw reads."
                 },
-                "trimmomatic": {
-                    "type": "string",
-                    "default": "ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True LEADING:3 TRAILING:3 MINLEN:36",
-                    "description": "Trimmomatic parameters.",
-                    "fa_icon": "fas fa-cut"
+                "report_all": {
+                    "type": "boolean",
+                    "description": "Report undetected targets in merged results files."
+                }
+            }
+        },
+        "target_detection_thresholds": {
+            "title": "Target detection thresholds",
+            "type": "object",
+            "description": "Set thresholds for determining positive and negative target detections",
+            "default": "",
+            "properties": {
+                "fold_cov_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "minimum": 0,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum fold-coverage of a target that must be achieved to call a positive detection."
+                },
+                "len_cov_threshold": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum length (in bp) that a target must be covered by to call a positive detection."
+                },
+                "mapped_reads_threshold": {
+                    "type": "integer",
+                    "default": 2,
+                    "minimum": 0,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum number of reads that must be mapped to a target to call a positive detection."
+                },
+                "prop_cov_threshold": {
+                    "type": "number",
+                    "default": 0.9,
+                    "minimum": 0,
+                    "maximum": 1,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum percentage of length (in bp) that a target must be covered by to call a positive detection."
+                },
+                "pident_threshold": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "fa_icon": "fas fa-greater-than-equal",
+                    "description": "The minimum percentage identity match to a target that must be achieved to call a positive detection (only available with `--aligner kma`)."
                 }
             }
         },
@@ -292,19 +350,22 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/defs/input_output_options"
         },
         {
-            "$ref": "#/definitions/new_group_1"
+            "$ref": "#/defs/worklow_execution_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/defs/target_detection_thresholds"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/defs/institutional_config_options"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/defs/max_job_request_options"
+        },
+        {
+            "$ref": "#/defs/generic_options"
         }
     ]
 }

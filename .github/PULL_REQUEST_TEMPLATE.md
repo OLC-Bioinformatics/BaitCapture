@@ -1,7 +1,7 @@
 <!--
-# olc/baitcapture pull request
+# BaitCapture pull request
 
-Many thanks for contributing to olc/baitcapture!
+Many thanks for contributing to BaitCapture!
 
 Please fill in the appropriate checklist below (delete whatever is not relevant).
 These are the most common things requested on pull requests (PRs).
@@ -14,11 +14,8 @@ Learn more about contributing: [CONTRIBUTING.md](https://github.com/OLC-Bioinfor
 ## PR checklist
 
 - [ ] This comment contains a description of changes (with reason).
-- [ ] If you've fixed a bug or added code that should be tested, add tests!
 - [ ] If you've added a new tool - have you followed the pipeline conventions in the [contribution docs](https://github.com/OLC-Bioinformatics/BaitCapture/blob/main/.github/CONTRIBUTING.md)
-- [ ] Make sure your code lints (`nf-core lint`).
 - [ ] Ensure the test suite passes (`nextflow run . -profile test,docker --outdir <OUTDIR>`).
-- [ ] Usage Documentation in `docs/usage.md` is updated.
-- [ ] Output Documentation in `docs/output.md` is updated.
+- [ ] Documentation in `docs/alignment_reports.md` is updated.
 - [ ] `CHANGELOG.md` is updated.
-- [ ] `README.md` is updated (including new tool citations and authors/contributors).
+- [ ] `README.md` and `CITATIONS.md` are updated (including new tool citations and authors/contributors).

@@ -2,18 +2,18 @@
 workflow PARSE_INPUT {
     take:
     input // folder
-    extension
+    pattern
 
     main:
-    error_message = "\nCannot find any reads matching: \"${input}${extension}\"\n"
+    error_message = "\nCannot find any reads matching: \"${input}${pattern}\"\n"
     error_message += "Please revise the input folder (\"--input\"): \"${input}\"\n"
-    error_message += "and the input file pattern (\"--extension\"): \"${extension}\"\n"
+    error_message += "and the input file pattern (\"--pattern\"): \"${pattern}\"\n"
     error_message += "*Please note: Path needs to be enclosed in quotes!*\n"
     error_message += "For more info, please consult the pipeline documentation.\n"
     
     //Get files - paired end
     Channel
-        .fromFilePairs( input + extension, size: 2 )
+        .fromFilePairs( input + pattern, size: 2 )
         .ifEmpty { error("${error_message}") }
         .map { name, reads ->
                 def meta = [:]
