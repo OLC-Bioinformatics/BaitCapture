@@ -153,7 +153,7 @@ raw_fastqscan = fromJSON(raw_fastqscan_file, simplifyDataFrame = TRUE)$qc_stats 
 if (!is.null(preprocessed_fastqscan_file)) {
   preprocessed_fastqscan = fromJSON(preprocessed_fastqscan_file, simplifyDataFrame = TRUE)$qc_stats |> 
     as_tibble() |> 
-    select(preprocessed_total_reads = read_total, preprocessed_total_bp = total_bp)
+    select(decontam_total_reads = read_total, decontam_total_bp = total_bp)
 }
 
 if (!is.null(trimmed_fastp_file)) {
@@ -192,8 +192,8 @@ specify_decimal = function(x, k) trimws(format(round(x, k), nsmall=k))
 if (!is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, trimmed_fastp, preprocessed_fastqscan, stats) |> 
     mutate(percent_reads_lost_fastp = (1 - fastp_total_reads/raw_total_reads) * 100) |> 
-    mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/fastp_total_reads) * 100) |> 
-    mutate(percent_reads_on_target = (mapped_total_reads/preprocessed_total_reads) * 100)
+    mutate(percent_reads_lost_decontam = (1 - decontam_total_reads/fastp_total_reads) * 100) |> 
+    mutate(percent_reads_on_target = (mapped_total_reads/decontam_total_reads) * 100)
 # Case 2: Trimming only
 } else if (!is.null(trimmed_fastp_file) && is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, trimmed_fastp, stats) |> 
@@ -202,8 +202,8 @@ if (!is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
 # Case 3: Dehosting only
 } else if (is.null(trimmed_fastp_file) && !is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, preprocessed_fastqscan, stats) |> 
-    mutate(percent_reads_lost_dehosting = (1 - preprocessed_total_reads/raw_total_reads) * 100) |> 
-    mutate(percent_reads_on_target = (mapped_total_reads/preprocessed_total_reads) * 100)
+    mutate(percent_reads_lost_decontam = (1 - decontam_total_reads/raw_total_reads) * 100) |> 
+    mutate(percent_reads_on_target = (mapped_total_reads/decontam_total_reads) * 100)
 # Case 4: No trimming or dehosting
 } else if (is.null(trimmed_fastp_file) && is.null(preprocessed_fastqscan_file)) {
   sumstats = bind_cols(raw_fastqscan, stats) |> 

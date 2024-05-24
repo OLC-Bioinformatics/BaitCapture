@@ -44,7 +44,7 @@ BaitCapture offers the following features:
 - **Read alignment**: Align reads against a reference database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
 - **[Alignment reports](docs/alignment_reports.md)**:
   - `mapstats.tsv`: A table of read alignment statistics against each gene target for each sample, including KMA-specific alignment statistics.
-  - `sumstats.tsv`: A table of on-target alignment and read filtering rates for each step of the workflow.
+  - `sumstats.tsv`: A table of summary statistics for each sample, including the on-target alignment rate, and the number of reads lost from host decontamination and filtering.
   - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based on user-defined thresholds.
   - `presence_absence_clusters.tsv`: A table of presence-absence calls for each gene target cluster in each sample, with clusters defined by a target metadata file (e.g. resistance mechanism).
 
@@ -205,7 +205,7 @@ If your `<OUTDIR>` was `results/`, you could then run the following command to i
 
 ```bash
 $ cat results/summary/sumstats.tsv 
-sampleid        raw_total_reads raw_total_bp    fastp_total_reads       fastp_total_bp  preprocessed_total_reads        preprocessed_total_bp   mapped_total_reads      mapped_total_bp percent_reads_lost_fastp        percent_reads_lost_dehosting    percent_reads_on_target
+sampleid        raw_total_reads raw_total_bp    fastp_total_reads       fastp_total_bp  decontam_total_reads        decontam_total_bp   mapped_total_reads      mapped_total_bp percent_reads_lost_fastp        percent_reads_lost_decontam    percent_reads_on_target
 SRR14739083     553624  83043600        464776  69619648        455764  68278988        98485   14753774        16.05   1.94    21.61
 ```
 
