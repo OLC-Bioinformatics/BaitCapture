@@ -57,7 +57,7 @@ The steps of the workflow are:
 
 1. Report the quality of the raw sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 2. (Optional) Trim the raw sequence reads using [fastp](https://github.com/OpenGene/fastp).
-3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [Bowtie2](https://github.com/BenLangmead/bowtie2).
+3. (Optional) Decontaminate the trimmed sequence reads using a host reference genome with [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2).
 4. Report the quality of the pre-processed sequence data using [FastQC](https://github.com/s-andrews/FastQC).
 5. Obtain total read and bp counts from the raw and pre-processed sequence data using [fastq-scan](https://github.com/rpetit3/fastq-scan).
 6. Align trimmed and/or decontaminated reads against the database of gene targets using [KMA](https://bitbucket.org/genomicepidemiology/kma), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2), or [BWA](https://github.com/lh3/bwa).
@@ -77,6 +77,10 @@ BaitCapture can be run using two different input types:
 
 - A **samplesheet**, including sample names and paths to paired-end gzipped FASTQ files, or
 - A **folder** containing paired-end gzipped FASTQ files.
+
+<details>
+
+<summary>Input types and examples</summary>
 
 ### Input type: Samplesheet
 
@@ -163,6 +167,8 @@ And the sample names will be:
 
 > [!NOTE]
 > When providing an argument to `--pattern`, the string must be enclosed in double quotes (`""`) and must be prepended with a forward slash (`/`).
+
+</details>
 
 ## Output
 
