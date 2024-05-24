@@ -78,10 +78,6 @@ BaitCapture can be run using two different input types:
 - A **samplesheet**, including sample names and paths to paired-end gzipped FASTQ files, or
 - A **folder** containing paired-end gzipped FASTQ files.
 
-<details>
-
-<summary>Input types and examples</summary>
-
 ### Input type: Samplesheet
 
 First, prepare a samplesheet with your input data that looks as follows:
@@ -167,8 +163,6 @@ And the sample names will be:
 
 > [!NOTE]
 > When providing an argument to `--pattern`, the string must be enclosed in double quotes (`""`) and must be prepended with a forward slash (`/`).
-
-</details>
 
 ## Output
 
