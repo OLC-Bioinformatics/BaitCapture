@@ -85,7 +85,7 @@ workflow BAITCAPTURE {
                 return [meta, reads]
             }
     } else if (params.input_folder) {
-        PARSE_INPUT(params.input_folder, params.extension)
+        PARSE_INPUT(params.input_folder, params.pattern)
         ch_reads = PARSE_INPUT.out.reads
     } else {
         error("One of `--input` or `--input_folder` must be provided!")

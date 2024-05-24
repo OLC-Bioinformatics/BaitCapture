@@ -19,6 +19,8 @@
 - [Usage](#usage)
   - [Input type: Samplesheet](#input-type-samplesheet)
   - [Input type: Folder](#input-type-folder)
+    - [Example #1: `_R{1,2}.fastq.gz` pattern](#example-1-_r12fastqgz-pattern)
+    - [Example #2: Alternate pattern](#example-2-alternate-pattern)
 - [Output](#output)
 - [Testing the workflow](#testing-the-workflow)
 - [Running the workflow on high-performance compute clusters](#running-the-workflow-on-high-performance-compute-clusters)
@@ -102,19 +104,21 @@ nextflow run OLC-Bioinformatics/BaitCapture \
 ### Input type: Folder
 
 Instead of a samplesheet, the user can instead provide a path to a directory containing gzipped FASTQ files.
-In this case, the sample name will be the name of the file up until the first period (`.`).
+In this case, the sample name will be the name of the file up until the first underscore (`_`).
 
-For example, for a folder `data/` that looks as follows:
+#### Example \#1: `_R{1,2}.fastq.gz` pattern
+
+For example, for a folder `data/` containing sequencing files that looks as follows:
 
 ```bash
 data
-├── ERR9958133_R1.fastq.gz
-├── ERR9958133_R2.fastq.gz
-├── ERR9958134_R1.fastq.gz
-└── ERR9958134_R2.fastq.gz
+├── ERR9958133_R1_001.fastq.gz
+├── ERR9958133_R2_001.fastq.gz
+├── ERR9958134_R1_001.fastq.gz
+└── ERR9958134_R2_001.fastq.gz
 ```
 
-The pipeline can be run using:
+The workflow can be run using:
 
 ```bash
 nextflow run OLC-Bioinformatics/BaitCapture \
@@ -124,7 +128,40 @@ nextflow run OLC-Bioinformatics/BaitCapture \
    --outdir <OUTDIR>
 ```
 
-If the names of the gzipped FASTQ files do not end with `.fastq.gz`, an alternate extension can be specified using `--extension`.
+And the sample names will be:
+- ERR9958133
+- ERR9958134
+
+#### Example \#2: Alternate pattern
+
+If the names of the gzipped FASTQ files do not end with `_R{1,2}_001.fastq.gz`, an alternate sequencing file pattern must be specified using `--pattern`.
+For example, for a folder `more-data/` that looks as follows:
+
+```bash
+more-data
+├── SAMN000214_R1.fastq.gz
+├── SAMN000214_R2.fastq.gz
+├── SAMN000215_R1.fastq.gz
+└── SAMN000215_R2.fastq.gz
+```
+
+The workflow can be run using:
+
+```bash
+nextflow run OLC-Bioinformatics/BaitCapture \
+   -profile <docker/singularity/.../institute> \
+   --input_folder data/ \
+   --pattern "/*_R{1,2}.fastq.gz" \
+   --targets targets.fa \
+   --outdir <OUTDIR>
+```
+
+And the sample names will be:
+- SAMN000214
+- SAMN000215
+
+> [!NOTE]
+> When providing an argument to `--pattern`, the string must be enclosed in double quotes (`""`) and must be prepended with a forward slash (`/`).
 
 ## Output
 

@@ -28,9 +28,9 @@
                     "fa_icon": "fas fa-dna",
                     "mimetype": "text/tsv",
                     "description": "Path to folder containing paired-end gzipped FASTQ files.",
-                    "help_text": "Path to folder containing paired-end compressed FASTQ files.\n\nExample for input data organization for two samples:\n\n```bash\ndata\n  \u251c\u2500sample1_1_L001_R1_001.fastq.gz\n  \u251c\u2500sample1_1_L001_R2_001.fastq.gz\n  \u251c\u2500sample2_1_L001_R1_001.fastq.gz\n  \u2514\u2500sample2_1_L001_R2_001.fastq.gz\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The folder must contain gzip compressed demultiplexed fastq files. If the file names do not follow the default (`\"/*_R{1,2}_001.fastq.gz\"`), please check `--extension`.\n3. Sample identifiers are extracted from file names, i.e. the string before the first underscore `_`, these must be unique\n4. If your data is scattered, produce a sample sheet."
+                    "help_text": "Path to folder containing paired-end compressed FASTQ files.\n\nExample for input data organization for two samples:\n\n```bash\ndata\n  \u251c\u2500sample1_1_L001_R1_001.fastq.gz\n  \u251c\u2500sample1_1_L001_R2_001.fastq.gz\n  \u251c\u2500sample2_1_L001_R1_001.fastq.gz\n  \u2514\u2500sample2_1_L001_R2_001.fastq.gz\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The folder must contain gzip compressed demultiplexed fastq files. If the file names do not follow the default (`\"/*_R{1,2}_001.fastq.gz\"`), please check `--pattern`.\n3. Sample identifiers are extracted from file names, i.e. the string before the first underscore `_`, these must be unique\n4. If your data is scattered, produce a sample sheet."
                 },
-                "extension": {
+                "pattern": {
                     "type": "string",
                     "default": "\"/*_R{1,2}_001.fastq.gz\"",
                     "fa_icon": "fas fa-font",
