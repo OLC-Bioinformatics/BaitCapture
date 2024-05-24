@@ -45,7 +45,7 @@ BaitCapture offers the following features:
 - **[Alignment reports](docs/alignment_reports.md)**:
   - `mapstats.tsv`: A table of read alignment statistics against each gene target for each sample, including KMA-specific alignment statistics.
   - `sumstats.tsv`: A table of summary statistics for each sample, including the on-target alignment rate, and the number of reads lost from host decontamination and filtering.
-  - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based on user-defined thresholds.
+  - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based upon user-defined thresholds.
   - `presence_absence_clusters.tsv`: A table of presence-absence calls for each gene target cluster in each sample, with clusters defined by a target metadata file (e.g. resistance mechanism).
 
 
