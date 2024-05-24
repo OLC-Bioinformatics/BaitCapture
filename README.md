@@ -19,8 +19,8 @@
 - [Usage](#usage)
   - [Input type: Samplesheet](#input-type-samplesheet)
   - [Input type: Folder](#input-type-folder)
-    - [Example #1: `_R{1,2}.fastq.gz` pattern](#example-1-_r12fastqgz-pattern)
-    - [Example #2: Alternate pattern](#example-2-alternate-pattern)
+    - [Case #1: Default file name pattern](#case-1-default-file-name-pattern)
+    - [Case #2: Alternate file name pattern](#case-2-alternate-file-name-pattern)
 - [Output](#output)
 - [Testing the workflow](#testing-the-workflow)
 - [Running the workflow on high-performance compute clusters](#running-the-workflow-on-high-performance-compute-clusters)
@@ -106,8 +106,9 @@ nextflow run OLC-Bioinformatics/BaitCapture \
 Instead of a samplesheet, the user can instead provide a path to a directory containing gzipped FASTQ files.
 In this case, the sample name will be the name of the file up until the first underscore (`_`).
 
-#### Example \#1: `_R{1,2}.fastq.gz` pattern
+#### Case \#1: Default file name pattern
 
+The default file naming pattern that `--input_folder` searches for is `"/*_R{1,2}.fastq.gz"`.
 For example, for a folder `data/` containing sequencing files that looks as follows:
 
 ```bash
@@ -118,7 +119,7 @@ data
 └── ERR9958134_R2_001.fastq.gz
 ```
 
-The workflow can be run using:
+The workflow can be run simply by using:
 
 ```bash
 nextflow run OLC-Bioinformatics/BaitCapture \
@@ -132,9 +133,9 @@ And the sample names will be:
 - ERR9958133
 - ERR9958134
 
-#### Example \#2: Alternate pattern
+#### Case \#2: Alternate file name pattern
 
-If the names of the gzipped FASTQ files do not end with `_R{1,2}_001.fastq.gz`, an alternate sequencing file pattern must be specified using `--pattern`.
+If the names of the gzipped FASTQ files **do not** end with `_R{1,2}_001.fastq.gz`, an alternate sequencing file pattern must be specified using `--pattern`.
 For example, for a folder `more-data/` that looks as follows:
 
 ```bash
