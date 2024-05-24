@@ -31,7 +31,8 @@
 
 ## Introduction
 
-Though it was designed in consideration of bait-capture sequencing data, BaitCapture can be used for **any** paired-end sequencing dataset where the user needs to align sequence reads to a reference database of gene targets.
+BaitCapture is based upon a Bash script workflow originally created by [Shay et al. (2023)](http://doi.org/10.1186/s40793-023-00482-0).
+Though it was designed in particular consideration of bait-capture sequencing data, BaitCapture can be used for any paired-end Illumina sequencing dataset where the user needs to align many sequence reads to a reference database of gene targets.
 
 BaitCapture offers the following features:
 
@@ -46,6 +47,8 @@ BaitCapture offers the following features:
   - `sumstats.tsv`: A table of on-target alignment and read filtering rates for each step of the workflow.
   - `presence_absence.tsv`: A table of presence-absence calls for each gene target in each sample, based on user-defined thresholds.
   - `presence_absence_clusters.tsv`: A table of presence-absence calls for each gene target cluster in each sample, with clusters defined by a target metadata file (e.g. resistance mechanism).
+
+
 
 ## Quick start
 
@@ -66,8 +69,7 @@ The steps of the workflow are:
 
 ## Usage
 
-If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
-to set-up Nextflow.
+If you are new to Nextflow and the nf-core framework, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow.
 
 Please provide pipeline parameters via the CLI or Nextflow `-params-file` option.
 Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
