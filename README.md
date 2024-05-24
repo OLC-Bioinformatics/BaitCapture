@@ -188,7 +188,7 @@ results/
 
 ## Testing the workflow
 
-To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow:
+To check if BaitCapture, Nextflow, and your container manager have been configured properly, a test run of the workflow can be performed by first cloning the GitHub repository and then running the test workflow as follows:
 
 ```bash
 git clone https://github.com/OLC-Bioinformatics/BaitCapture
@@ -229,13 +229,13 @@ nextflow run OLC-Bioinformatics/BaitCapture \
 More usage information can be obtained at any time by running `nextflow run OLC-Bioinformatics/BaitCapture --help`:
 
 ```
-$ nextflow run . --help
+$ nextflow run OLC-Bioinformatics/BaitCapture --help
 N E X T F L O W  ~  version 23.10.1
-Launching `./main.nf` [astonishing_lovelace] DSL2 - revision: 84af6b8cef
+Launching `https://github.com/OLC-Bioinformatics/BaitCapture` [stupefied_bassi] DSL2 - revision: 0fd15d548b [dev]
 
 
 ------------------------------------------------------
-  olc/baitcapture v1.0.0
+  olc/baitcapture v1.0.0-g0fd15d5
 ------------------------------------------------------
 Typical pipeline command:
 
@@ -244,7 +244,8 @@ Typical pipeline command:
 Input/output options
   --input                            [string]  Path to comma-separated file containing information about the samples in the experiment.
   --input_folder                     [string]  Path to folder containing paired-end gzipped FASTQ files.
-  --extension                        [string]  Naming of sequencing files. [default: /*_R{1,2}_001.fastq.gz]
+  --pattern                          [string]  Naming of sequencing files for `--input_folder`. Must use double-quotes (`""`) and a prepended slash (`/`). 
+                                               [default: "/*_R{1,2}_001.fastq.gz"] 
   --targets                          [string]  Path to FASTA file of gene targets for alignment.
   --outdir                           [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud 
                                                infrastructure. 
@@ -268,7 +269,7 @@ Target detection thresholds
   --prop_cov_threshold               [number]  The minimum percentage of length (in bp) that a target must be covered by to call a positive detection. 
                                                [default: 0.9] 
   --pident_threshold                 [number]  The minimum percentage identity match to a target that must be achieved to call a positive detection (only 
-                                               available for `--aligner kma`). 
+                                               available with `--aligner kma`). 
 
 Generic options
   --multiqc_methods_description      [string]  Custom MultiQC yaml file containing HTML including a methods description.
