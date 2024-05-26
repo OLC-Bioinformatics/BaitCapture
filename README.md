@@ -154,7 +154,7 @@ The workflow can be run using:
 ```bash
 nextflow run OLC-Bioinformatics/BaitCapture \
    -profile <docker/singularity/.../institute> \
-   --input_folder data/ \
+   --input_folder more-data/ \
    --pattern "/*_R{1,2}.fastq.gz" \
    --targets targets.fa \
    --outdir <OUTDIR>
