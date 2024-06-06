@@ -296,6 +296,8 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 ## Citations
 
+If you use BaitCapture in a publication, please consider citing the software using the Zenodo DOI: [10.5281/zenodo.11283946](https://zenodo.org/doi/10.5281/zenodo.11283946).
+
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) initative, including [nf-core/mag](https://github.com/nf-core/mag) and [nf-core/ampliseq](https://github.com/nf-core/ampliseq), and reused here under the [MIT license](https://github.com/nf-core/tools/blob/master/LICENSE).
