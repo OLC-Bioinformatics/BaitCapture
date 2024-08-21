@@ -228,6 +228,10 @@ if (!is.null(kma_res_file)) {
     relocate(seqlen, .after = target) |> 
     rename_with(.cols = score:p_value,
                 .fn = ~ paste("kma", .x, sep = "_"))
+  if (nrow(kma_res) == 0) {
+    print("No results found in the input KMA .res file.")
+    kma_res_file = NULL
+  }
 }
 
 if (!is.null(target_metadata_file)) {
