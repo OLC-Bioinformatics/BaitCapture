@@ -21,7 +21,7 @@ workflow PARSE_INPUT {
                 [ meta, reads ] }
         .set { ch_reads }
     
-    //Check whether all sampleID = meta.id are unique
+    //Check whether all sample = meta.id are unique
     ch_reads
         .map { meta, reads -> [ meta.id ] }
         .toList()

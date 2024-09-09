@@ -84,6 +84,16 @@ workflow BAITCAPTURE {
                 def reads = [fastq_1, fastq_2]
                 return [meta, reads]
             }
+            //Check whether all sample = meta.id are unique
+            ch_reads
+                .map { meta, reads -> [ meta.id ] }
+                .toList()
+                .subscribe {
+                    if( it.size() != it.unique().size() ) {
+                        ids = it.take(10);
+                        error("Please review data input, sample IDs are not unique! First IDs are $ids")
+                    }
+                }
     } else if (params.input_folder) {
         PARSE_INPUT(params.input_folder, params.pattern)
         ch_reads = PARSE_INPUT.out.reads
