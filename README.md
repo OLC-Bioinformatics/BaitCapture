@@ -5,7 +5,7 @@
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11283947.svg)](https://doi.org/10.5281/zenodo.11283947)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13737733.svg)](https://doi.org/10.5281/zenodo.13737733)
 
 <p align='center'><img src='assets/baitcapture-banner_v02.png' alt="BaitCapture banner" width="75%"></p>
 
