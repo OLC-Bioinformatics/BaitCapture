@@ -81,6 +81,8 @@ BaitCapture can be run using two different input types:
 - A **samplesheet**, including sample names and paths to paired-end gzipped FASTQ files, or
 - A **folder** containing paired-end gzipped FASTQ files.
 
+Additionally, a target metadata file can optionally be provided to generate a `presence_absence_clusters.tsv` file.
+
 ### Input type: Samplesheet
 
 First, prepare a samplesheet with your input data that looks as follows:
@@ -166,6 +168,65 @@ And the sample names will be:
 
 > [!NOTE]
 > When providing an argument to `--pattern`, the string must be enclosed in double quotes (`""`) and must be prepended with a forward slash (`/`).
+
+### (Optional) Input type: Target metadata
+
+The path to a target metadata file can optionally be provided with `--target_metadata` to generate a `presence_absence_clusters.tsv` file, which describes the presence or absence of clusters of gene targets (e.g. AMR resistance mechanism, target drug class, replicon type).
+The requirements for this file are:
+
+- A comma-separated value (CSV) file with a header row, with one column header named `target`.
+- At least one column in addition to the `target` column, which describes a categorical variable to cluster the targets by.
+- Each value in the target column must exactly match the first word of a sequence header in the `--targets` FASTA database.
+
+For example, if we provide a `--targets` database containing two sequences:
+
+```fasta
+>gb|X91840.1|+|1-1146|CMY-2 [Klebsiella pneumoniae]
+ATGATGAAAAAATCGTTATGCTGCGCTCTGCTGCTGACAGCCTCTTTCTCCACATTTGCTGCCGCAAAAACAGAACAACAGATTGCCGAT
+ATCGTTAATCGCACCATCACCCCGTTGATGCAGGAGCAGGCTATTCCGGGTATGGCCGTTGCCGTTATCTACCAGGGAAAACCCTATTAT
+TTCACCTGGGGTAAAGCCGATATCGCCAATAACCACCCAGTCACGCAGCAAACGCTGTTTGAGCTAGGATCGGTTAGTAAGACGTTTAAC
+GGCGTGTTGGGCGGCGATGCTATCGCCCGCGGCGAAATTAAGCTCAGCGATCCGGTCACGAAATACTGGCCAGAACTGACAGGCAAACAG
+TGGCAGGGTATCCGCCTGCTGCACTTAGCCACCTATACGGCAGGCGGCCTACCGCTGCAGATCCCCGATGACGTTAGGGATAAAGCCGCA
+TTACTGCATTTTTATCAAAACTGGCAGCCGCAATGGACTCCGGGCGCTAAGCGACTTTACGCTAACTCCAGCATTGGTCTGTTTGGCGCG
+CTGGCGGTGAAACCCTCAGGAATGAGTTACGAAGAGGCAATGACCAGACGCGTCCTGCAACCATTAAAACTGGCGCATACCTGGATTACG
+GTTCCGCAGAACGAACAAAAAGATTATGCCTGGGGCTATCGCGAAGGGAAGCCCGTACACGTTTCTCCGGGACAACTTGACGCCGAAGCC
+TATGGCGTGAAATCCAGCGTTATTGATATGGCCCGCTGGGTTCAGGCCAACATGGATGCCAGCCACGTTCAGGAGAAAACGCTCCAGCAG
+GGCATTGCGCTTGCGCAGTCTCGCTACTGGCGTATTGGCGATATGTACCAGGGATTAGGCTGGGAGATGCTGAACTGGCCGCTGAAAGCT
+GATTCGATCATCAACGGCAGCGACAGCAAAGTGGCATTGGCAGCGCTTCCCGCCGTTGAGGTAAACCCGCCCGCCCCCGCAGTGAAAGCC
+TCATGGGTGCATAAAACGGGCTCCACTGGTGGATTTGGCAGCTACGTAGCCTTCGTTCCAGAAAAAAACCTTGGCATCGTGATGCTGGCA
+AACAAAAGCTATCCTAACCCTGTCCGTGTCGAGGCGGCCTGGCGCATTCTTGAAAAGCTGCAATAA
+>gb|AF231986.2|+|3308-4522|floR [Escherichia coli]
+ATGACCACCACACGCCCCGCGTGGGCCTATACGCTGCCGGCAGCACTGCTGCTGATGGCTCCTTTCGACATCCTCGCTTCACTGGCGATG
+GATATTTATCTCCCTGTCGTTCCAGCGATGCCCGGCATCCTGAACACGACGCCCGCTATGATCCAACTCACGTTGAGCCTCTATATGGTG
+ATGCTCGGCGTGGGCCAGGTGATTTTTGGTCCGCTCTCAGACAGAATCGGGCGACGGCCAATTCTACTTGCGGGCGCAACGGCTTTCGTC
+ATTGCGTCTCTGGGAGCAGCTTGGTCTTCAACTGCACCGGCCTTTGTCGCTTTCCGTCTACTTCAAGCAGTGGGCGCGTCGGCCATGCTG
+GTGGCGACGTTCGCGACGGTTCGCGACGTTTATGCCAACCGTCCTGAGGGTGTCGTCATCTACGGCCTTTTCAGTTCGGTGCTGGCGTTC
+GTGCCTGCGCTCGGCCCTATCGCCGGAGCATTGATCGGCGAGTTCTTGGGATGGCAGGCGATATTCATTACTTTGGCTATACTGGCGATG
+CTCGCACTCCTAAATGCGGGTTTCAGGTGGCACGAAACCCGCCCTCTGGATCAAGTCAAGACGCGCCGATCTGTCTTGCCGATCTTCGCG
+AGTCCGGCTTTTTGGGTTTACACTGTCGGCTTTAGCGCCGGTATGGGCACCTTCTTCGTCTTCTTCTCGACGGCTCCCCGTGTGCTCATA
+GGCCAAGCGGAATATTCCGAGATCGGATTCAGCTTTGCCTTCGCCACTGTCGCGCTTGTAATGATCGTGACAACCCGTTTCGCGAAGTCC
+TTTGTCGCCAGATGGGGCATCGCAGGATGCGTGGCGCGTGGGATGGCGTTGCTTGTTTGCGGAGCGGTCCTGTTGGGGATCGGCGAACTT
+TACGGCTCGCCGTCATTCCTCACCTTCATCCTACCGATGTGGGTTGTCGCGGTCGGTATTGTCTTCACGGTGTCCGTTACCGCGAACGGC
+GCTTTGGCAGAGTTCGACGACATCGCGGGATCAGCGGTCGCGTTCTACTTCTGCGTTCAAAGCCTGATAGTCAGCATTGTCGGGACATTG
+GCGGTGGCACTTTTAAACGGTGACACAGCGTGGCCCGTGATCTGTTACGCCACGGCGATGGCGGTACTGGTTTCGTTGGGGCTGGTGCTC
+CTTCGGCTCCGTGGGGCTGCCACCGAGAAGTCGCCAGTCGTCTAA
+```
+
+We might optionally provide a `--target_metadata` CSV file which looks as follows:
+
+| target                             | drug_class  | resistance_mechanism    |
+|------------------------------------|-------------|-------------------------|
+| gb\|X91840.1\|+\|1-1146\|CMY-2     | beta_lactam | antibiotic_inactivation |
+| gb\|AF231986.2\|+\|3308-4522\|floR | phenicol    | antibiotic_efflux       |
+
+So, BaitCapture would generate the following `presence_absence_clusters.tsv` file if only the CMY-2 target is detected in sampleA:
+
+| sampleid | metavar_name         | metavar_value           | presence_absence |
+|----------|----------------------|-------------------------|------------------|
+| sampleA  | drug_class           | beta_lactam             | 1                |
+| sampleA  | drug_class           | phenicol                | 0                |
+| sampleA  | resistance_mechanism | antibiotic_inactivation | 1                |
+| sampleA  | resistance_mechanism | antibiotic_efflux       | 0                |
 
 ## Output
 
