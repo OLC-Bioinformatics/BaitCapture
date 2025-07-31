@@ -22,6 +22,7 @@
   - [Input type: Folder](#input-type-folder)
     - [Case #1: Default file name pattern](#case-1-default-file-name-pattern)
     - [Case #2: Alternate file name pattern](#case-2-alternate-file-name-pattern)
+  - [(Optional) Input type: Target metadata](#optional-input-type-target-metadata)
 - [Output](#output)
 - [Testing the workflow](#testing-the-workflow)
 - [Running the workflow on high-performance compute clusters](#running-the-workflow-on-high-performance-compute-clusters)
